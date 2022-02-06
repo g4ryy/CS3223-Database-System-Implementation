@@ -48,7 +48,6 @@ public class IndexInfo {
     */
    public Index open() {
       if (idxType.equals("hash")) {
-         System.out.println(idxType);
          return new HashIndex(tx, idxname, idxLayout);
       }
 
@@ -69,8 +68,12 @@ public class IndexInfo {
    public int blocksAccessed() {
       int rpb = tx.blockSize() / idxLayout.slotSize();
       int numblocks = si.recordsOutput() / rpb;
-      return HashIndex.searchCost(numblocks, rpb);
-//    return BTreeIndex.searchCost(numblocks, rpb);
+
+      if (idxType.equals("hash")) {
+         return HashIndex.searchCost(numblocks, rpb);
+      }
+
+      return BTreeIndex.searchCost(numblocks, rpb);
    }
    
    /**

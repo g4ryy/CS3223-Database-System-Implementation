@@ -44,6 +44,7 @@ class IndexMgr {
     * @param idxname the name of the index
     * @param tblname the name of the indexed table
     * @param fldname the name of the indexed field
+    * @param idxType the type of the index
     * @param tx the calling transaction
     */
    public void createIndex(String idxname, String tblname, String fldname, String idxType, Transaction tx) {
