@@ -65,9 +65,38 @@ public class Parser {
          lex.eatKeyword("where");
          pred = predicate();
       }
+
+      List<OrderField> orderFields = new ArrayList<>();
+      if (lex.matchKeyword("order")) {
+         lex.eatKeyword("order");
+         lex.eatKeyword("by");
+
+         orderFields.add(new OrderField(field(), orderType()));
+
+         while (lex.matchDelim(',')) {
+            lex.eatDelim(',');
+            orderFields.add(new OrderField(field(), orderType()));
+         }
+      }
       return new QueryData(fields, tables, pred);
    }
-   
+
+   private String orderType() {
+      String type = "asc";
+
+      // if the token after the field is not a word, then by default it's asc
+      if (!lex.matchId() && !lex.matchKeyword("asc") && !lex.matchKeyword("desc")) {
+         return type;
+      }
+
+      if (lex.matchKeyword("desc")) {
+         type = "desc";
+      }
+
+      lex.eatKeyword(type);
+      return type;
+   }
+
    private List<String> selectList() {
       List<String> L = new ArrayList<String>();
       L.add(field());
