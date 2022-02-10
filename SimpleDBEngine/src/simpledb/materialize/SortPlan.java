@@ -1,6 +1,7 @@
 package simpledb.materialize;
 
 import java.util.*;
+
 import simpledb.tx.Transaction;
 import simpledb.record.*;
 import simpledb.plan.Plan;
@@ -22,13 +23,13 @@ public class SortPlan implements Plan {
     * @param sortfields the fields to sort by
     * @param tx the calling transaction
     */
-   public SortPlan(Transaction tx, Plan p, List<String> sortfields) {
+   public SortPlan(Transaction tx, Plan p, List<OrderField> sortfields) {
       this.tx = tx;
       this.p = p;
       sch = p.schema();
       comp = new RecordComparator(sortfields);
    }
-   
+
    /**
     * This method is where most of the action is.
     * Up to 2 sorted temporary tables are created,

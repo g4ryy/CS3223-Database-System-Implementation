@@ -15,7 +15,7 @@ public class QueryData {
    private List<OrderField> orderFields;
 
    /**
-    * Saves the field and table list and predicate.
+    * Saves the field, table list, predicate and ordering fields.
     */
    public QueryData(List<String> fields, Collection<String> tables,
                     Predicate pred, List<OrderField> orderFields) {
