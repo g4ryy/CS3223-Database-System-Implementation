@@ -78,7 +78,7 @@ public class Parser {
             orderFields.add(new OrderField(field(), orderType()));
          }
       }
-      return new QueryData(fields, tables, pred);
+      return new QueryData(fields, tables, pred, orderFields);
    }
 
    private String orderType() {

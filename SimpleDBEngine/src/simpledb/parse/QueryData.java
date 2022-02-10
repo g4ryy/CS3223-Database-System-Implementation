@@ -12,14 +12,17 @@ public class QueryData {
    private List<String> fields;
    private Collection<String> tables;
    private Predicate pred;
-   
+   private List<OrderField> orderFields;
+
    /**
     * Saves the field and table list and predicate.
     */
-   public QueryData(List<String> fields, Collection<String> tables, Predicate pred) {
+   public QueryData(List<String> fields, Collection<String> tables,
+                    Predicate pred, List<OrderField> orderFields) {
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
+      this.orderFields = orderFields;
    }
    
    /**
@@ -46,6 +49,15 @@ public class QueryData {
    public Predicate pred() {
       return pred;
    }
+
+   /**
+    * Returns the list of fields to order by
+    *
+    * @return a list of (field, ordering type) pairs
+    */
+   public List<OrderField> orderFields() {
+      return orderFields;
+   }
    
    public String toString() {
       String result = "select ";
@@ -59,6 +71,13 @@ public class QueryData {
       String predstring = pred.toString();
       if (!predstring.equals(""))
          result += " where " + predstring;
+      if (orderFields.size() > 0) {
+         result += " order by ";
+         for (OrderField orderField : orderFields) {
+            result += String.format("%s %s, ", orderField.getField(), orderField.getType());
+         }
+         result = result.substring(0, result.length()-2); //remove final comma
+      }
       return result;
    }
 }
