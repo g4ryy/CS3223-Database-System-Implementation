@@ -1,6 +1,8 @@
 package simpledb.opt;
 
 import java.util.*;
+
+import simpledb.materialize.SortPlan;
 import simpledb.tx.Transaction;
 import simpledb.metadata.MetadataMgr;
 import simpledb.parse.QueryData;
@@ -47,7 +49,14 @@ public class HeuristicQueryPlanner implements QueryPlanner {
       }
       
       // Step 4.  Project on the field names and return
-      return new ProjectPlan(currentplan, data.fields());
+      currentplan = new ProjectPlan(currentplan, data.fields());
+
+      // Step 5. Sort on the sort
+      if (data.orderFields().size() > 0 ) {
+         currentplan = new SortPlan(tx, currentplan, data.orderFields());
+      }
+
+      return currentplan;
    }
    
    private Plan getLowestSelectPlan() {

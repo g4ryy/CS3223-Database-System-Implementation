@@ -1,6 +1,7 @@
 package simpledb.materialize;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import simpledb.tx.Transaction;
 import simpledb.record.*;

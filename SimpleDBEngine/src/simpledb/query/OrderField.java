@@ -1,7 +1,7 @@
 package simpledb.query;
 
 /**
- * Represents a pair of field and ordering type,
+ * Represents a pair of sort field and the corresponding ordering type,
  * where the field is the field to order by and ordering type is either asc or desc
  */
 public class OrderField {
@@ -21,3 +21,4 @@ public class OrderField {
         return this.type;
     }
 }
+
