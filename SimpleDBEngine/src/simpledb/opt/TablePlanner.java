@@ -1,6 +1,9 @@
 package simpledb.opt;
 
 import java.util.Map;
+import java.util.PriorityQueue;
+
+import simpledb.materialize.MergeJoinPlan;
 import simpledb.tx.Transaction;
 import simpledb.record.*;
 import simpledb.query.*;
@@ -64,10 +67,26 @@ class TablePlanner {
       Predicate joinpred = mypred.joinSubPred(myschema, currsch);
       if (joinpred == null)
          return null;
-      Plan p = makeIndexJoin(current, currsch);
-      if (p == null)
-         p = makeProductJoin(current, currsch);
-      return p;
+
+      PriorityQueue<Plan> pq = new PriorityQueue<>((x, y) -> x.blocksAccessed() - y.blocksAccessed());
+      Plan tempPlan = makeIndexJoin(current, currsch);
+      if (tempPlan != null) {
+         pq.add(tempPlan);
+      }
+      tempPlan = makeMergeJoin(current, currsch, joinpred);
+      if (tempPlan != null) {
+         pq.add(tempPlan);
+
+      }
+
+      if (pq.size() == 0) {
+         tempPlan = makeProductJoin(current, currsch);
+         if (tempPlan != null) {
+            pq.add(tempPlan);
+         }
+      }
+
+      return pq.poll();
    }
    
    /**
@@ -88,6 +107,19 @@ class TablePlanner {
             IndexInfo ii = indexes.get(fldname);
             System.out.println("index on " + fldname + " used");
             return new IndexSelectPlan(myplan, ii, val);
+         }
+      }
+      return null;
+   }
+
+   private Plan makeMergeJoin(Plan current, Schema currsch, Predicate joinPred) {
+      for (String fldname : myschema.fields()) {
+         String matchField = joinPred.equatesWithField(fldname);
+
+         if (matchField != null && currsch.hasField(matchField)) {
+            Plan p = new MergeJoinPlan(tx, myplan, current, fldname, matchField);
+            p = addSelectPred(p);
+            return addJoinPred(p, currsch);
          }
       }
       return null;
