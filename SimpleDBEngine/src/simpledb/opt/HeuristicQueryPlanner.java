@@ -59,7 +59,7 @@ public class HeuristicQueryPlanner implements QueryPlanner {
 
       // Step 6: Sort by field names and specified ordering
       if (data.orderFields().size() > 0 ) {
-         currentplan = new SortPlan(tx, currentplan, data.orderFields());
+         currentplan = new SortPlan(tx, currentplan, data.orderFields(), data.isDistinct());
       }
 
       return currentplan;

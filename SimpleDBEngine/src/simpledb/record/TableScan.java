@@ -1,6 +1,10 @@
 package simpledb.record;
 
 import static java.sql.Types.INTEGER;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import simpledb.file.BlockId;
 import simpledb.query.*;
 import simpledb.tx.Transaction;
@@ -57,6 +61,20 @@ public class TableScan implements UpdateScan {
          return new Constant(getInt(fldname));
       else
          return new Constant(getString(fldname));
+   }
+
+   /**
+    * Returns a list of values corresponding to the specified field names.
+    *
+    * @param fields a List of field names
+    * @return a List of Constant objects
+    */
+   public List<Constant> getValuesForFields(List<String> fields) {
+	   List<Constant> values = new ArrayList<>();
+	   for (String fldname : fields) {
+		   values.add(getVal(fldname));
+	   }
+	   return values;
    }
 
    public boolean hasField(String fldname) {

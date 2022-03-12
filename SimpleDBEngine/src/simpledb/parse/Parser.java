@@ -62,6 +62,12 @@ public class Parser {
    
    public QueryData query() {
       lex.eatKeyword("select");
+      boolean isDistinct = false;
+      if (lex.matchKeyword("distinct")) {
+    	  lex.eatKeyword("distinct");
+    	  isDistinct = true;
+      }
+      
       List<String> fields = new ArrayList<>();
       List<AggregationFn> aggFields = new ArrayList<>();
 
@@ -94,19 +100,32 @@ public class Parser {
       }
 
       List<OrderField> orderFields = new ArrayList<>();
+      List<String> orderFieldNames = new ArrayList<>();
       if (lex.matchKeyword("order")) {
          lex.eatKeyword("order");
          lex.eatKeyword("by");
 
-         orderFields.add(new OrderField(field(), orderType()));
+         String fieldName = field();
+         orderFields.add(new OrderField(fieldName, orderType()));
+         orderFieldNames.add(fieldName);
 
          while (lex.matchDelim(',')) {
             lex.eatDelim(',');
-            orderFields.add(new OrderField(field(), orderType()));
+            fieldName = field();
+            orderFields.add(new OrderField(fieldName, orderType()));
+            orderFieldNames.add(fieldName);
          }
       }
+      if (isDistinct) {
+    	  for (String fieldName : fields) {
+    		  if (!orderFieldNames.contains(fieldName)) {
+    			  orderFields.add(new OrderField(fieldName, "asc"));
+    			  orderFieldNames.add(fieldName);
+    		  }
+    	  }
+      }
 
-      return new QueryData(fields, tables, pred, orderFields, aggFields, groupByFields);
+      return new QueryData(fields, tables, pred, orderFields, aggFields, groupByFields, isDistinct);
    }
 
    private String orderType() {

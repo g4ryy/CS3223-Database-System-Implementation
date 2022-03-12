@@ -17,6 +17,7 @@ public class SortPlan implements Plan {
    private Plan p;
    private Schema sch;
    private RecordComparator comp;
+   private boolean isDistinct;
    
    /**
     * Create a sort plan for the specified query.
@@ -24,11 +25,12 @@ public class SortPlan implements Plan {
     * @param sortfields the fields to sort by
     * @param tx the calling transaction
     */
-   public SortPlan(Transaction tx, Plan p, List<OrderField> sortfields) {
+   public SortPlan(Transaction tx, Plan p, List<OrderField> sortfields, boolean isDistinct) {
       this.tx = tx;
       this.p = p;
       sch = p.schema();
       comp = new RecordComparator(sortfields);
+      this.isDistinct = isDistinct;
    }
 
    /**
@@ -121,25 +123,57 @@ public class SortPlan implements Plan {
    }
    
    private TempTable mergeTwoRuns(TempTable p1, TempTable p2) {
-      Scan src1 = p1.open();
-      Scan src2 = p2.open();
+      TableScan src1 = (TableScan) p1.open();
+      TableScan src2 = (TableScan) p2.open();
       TempTable result = new TempTable(tx, sch);
       UpdateScan dest = result.open();
+      List<Constant> prev = null;
       
       boolean hasmore1 = src1.next();
       boolean hasmore2 = src2.next();
-      while (hasmore1 && hasmore2)
-         if (comp.compare(src1, src2) < 0)
-         hasmore1 = copy(src1, dest);
-      else
-         hasmore2 = copy(src2, dest);
+      while (hasmore1 && hasmore2) {
+    	  if (isDistinct && prev != null) {
+     		 if (prev.equals(src1.getValuesForFields(sch.fields()))) {
+     			 hasmore1 = src1.next();
+     			 continue;
+     		 }
+     		 if (prev.equals(src2.getValuesForFields(sch.fields()))) {
+     			 hasmore2 = src2.next();
+     			 continue;
+     		 }
+     	 }
+     	  
+          if (comp.compare(src1, src2) < 0) {
+         	 prev = src1.getValuesForFields(sch.fields());
+              hasmore1 = copy(src1, dest);
+          } else {
+         	 prev = src2.getValuesForFields(sch.fields());
+         	 hasmore2 = copy(src2, dest);
+          }
+      }
       
       if (hasmore1)
-         while (hasmore1)
-         hasmore1 = copy(src1, dest);
+         while (hasmore1) {
+        	 if (isDistinct && prev != null) {
+         		 if (prev.equals(src1.getValuesForFields(sch.fields()))) {
+         			 hasmore1 = src1.next();
+         			 continue;
+         		 }
+         	 }
+        	 prev = src1.getValuesForFields(sch.fields());
+             hasmore1 = copy(src1, dest);
+         }
       else
-         while (hasmore2)
-         hasmore2 = copy(src2, dest);
+         while (hasmore2) {
+        	 if (isDistinct && prev != null) {
+         		 if (prev.equals(src2.getValuesForFields(sch.fields()))) {
+         			 hasmore2 = src2.next();
+         			 continue;
+         		 }
+         	 }
+        	 prev = src2.getValuesForFields(sch.fields());
+             hasmore2 = copy(src2, dest);
+         }
       src1.close();
       src2.close();
       dest.close();
