@@ -52,14 +52,14 @@ public class HeuristicQueryPlanner implements QueryPlanner {
       // Step 4.  Project on the field names and return
       currentplan = new ProjectPlan(currentplan, data.fields());
 
-      // Step 5. Sort on the sort
-      if (data.orderFields().size() > 0 ) {
-         currentplan = new SortPlan(tx, currentplan, data.orderFields());
+      // Step 5: Group by and aggregate if needed
+      if (!data.groupByFields().isEmpty() || !data.aggFields().isEmpty()) {
+         currentplan = new GroupByPlan(tx, currentplan, new ArrayList<>(), data.aggFields());
       }
 
-      // Step 6: Aggregate if needed
-      if (!data.aggFields().isEmpty()) {
-         currentplan = new GroupByPlan(tx, currentplan, new ArrayList<>(), data.aggFields());
+      // Step 6: Sort on the sort
+      if (data.orderFields().size() > 0 ) {
+         currentplan = new SortPlan(tx, currentplan, data.orderFields());
       }
 
       return currentplan;

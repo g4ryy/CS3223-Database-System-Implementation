@@ -87,6 +87,13 @@ public class Parser {
          pred = predicate();
       }
 
+      List<String> groupByFields = new ArrayList<>();
+      if (lex.matchKeyword("group")) {
+         lex.eatKeyword("group");
+         lex.eatKeyword("by");
+         groupByFields = groupByList();
+      }
+
       List<OrderField> orderFields = new ArrayList<>();
       if (lex.matchKeyword("order")) {
          lex.eatKeyword("order");
@@ -99,7 +106,8 @@ public class Parser {
             orderFields.add(new OrderField(field(), orderType()));
          }
       }
-      return new QueryData(fields, tables, pred, orderFields, aggFields);
+
+      return new QueryData(fields, tables, pred, orderFields, aggFields, groupByFields);
    }
 
    private String orderType() {
@@ -159,6 +167,17 @@ public class Parser {
          L.addAll(tableList());
       }
       return L;
+   }
+
+   private List<String> groupByList() {
+      List<String> groupByFields = new ArrayList<>();
+      groupByFields.add(field());
+
+      while (lex.matchDelim(',')) {
+         lex.eatDelim(',');
+         groupByFields.add(field());
+      }
+      return groupByFields;
    }
    
 // Methods for parsing the various update commands

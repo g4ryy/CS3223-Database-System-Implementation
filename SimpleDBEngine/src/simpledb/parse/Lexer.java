@@ -196,7 +196,7 @@ public class Lexer {
       keywords = Arrays.asList("select", "from", "where", "and",
                                "insert", "into", "values", "delete", "update", "set", 
                                "create", "table", "int", "varchar", "view", "as", "index", "on",
-                               "using", "hash", "btree", "asc", "desc", "order", "by");
+                               "using", "hash", "btree", "asc", "desc", "order", "by", "group");
    }
 
    /* Some operators such as <=, <>, != consists of 2 components. This method

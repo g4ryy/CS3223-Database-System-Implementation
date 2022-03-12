@@ -15,17 +15,26 @@ public class QueryData {
    private Predicate pred;
    private List<OrderField> orderFields;
    private List<AggregationFn> aggFields;
+   private List<String> groupByFields;
 
    /**
     * Saves the field, table list, predicate, ordering fields and aggregation fields.
     */
    public QueryData(List<String> fields, Collection<String> tables,
-                    Predicate pred, List<OrderField> orderFields, List<AggregationFn> aggFields) {
+                    Predicate pred, List<OrderField> orderFields,
+                    List<AggregationFn> aggFields, List<String> groupByFields) {
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
       this.orderFields = orderFields;
       this.aggFields = aggFields;
+      this.groupByFields = groupByFields;
+
+      for (String field : groupByFields) {
+         if (!fields.contains(field)) {
+            fields.add(field);
+         }
+      }
    }
    
    /**
@@ -69,6 +78,14 @@ public class QueryData {
     */
    public List<AggregationFn> aggFields() {
       return aggFields;
+   }
+
+   /**
+    * Returns the list of group by fields
+    * @return a list of group by fields
+    */
+   public List<String> groupByFields() {
+      return groupByFields;
    }
    
    public String toString() {
