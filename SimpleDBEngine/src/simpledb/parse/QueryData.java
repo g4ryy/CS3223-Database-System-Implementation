@@ -2,6 +2,7 @@ package simpledb.parse;
 
 import java.util.*;
 
+import simpledb.materialize.AggregationFn;
 import simpledb.query.*;
 
 /**
@@ -13,16 +14,18 @@ public class QueryData {
    private Collection<String> tables;
    private Predicate pred;
    private List<OrderField> orderFields;
+   private List<AggregationFn> aggFields;
 
    /**
-    * Saves the field, table list, predicate and ordering fields.
+    * Saves the field, table list, predicate, ordering fields and aggregation fields.
     */
    public QueryData(List<String> fields, Collection<String> tables,
-                    Predicate pred, List<OrderField> orderFields) {
+                    Predicate pred, List<OrderField> orderFields, List<AggregationFn> aggFields) {
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
       this.orderFields = orderFields;
+      this.aggFields = aggFields;
    }
    
    /**
@@ -57,6 +60,15 @@ public class QueryData {
     */
    public List<OrderField> orderFields() {
       return orderFields;
+   }
+
+   /**
+    * Returns the list of aggregation functions
+    *
+    * @return a list of aggregation functions
+    */
+   public List<AggregationFn> aggFields() {
+      return aggFields;
    }
    
    public String toString() {

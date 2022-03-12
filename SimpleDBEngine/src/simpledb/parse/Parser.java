@@ -2,6 +2,12 @@ package simpledb.parse;
 
 import java.util.*;
 
+import simpledb.materialize.AggregationFn;
+import simpledb.materialize.AvgFn;
+import simpledb.materialize.CountFn;
+import simpledb.materialize.MaxFn;
+import simpledb.materialize.MinFn;
+import simpledb.materialize.SumFn;
 import simpledb.query.*;
 import simpledb.record.*;
 
@@ -57,7 +63,22 @@ public class Parser {
    
    public QueryData query() {
       lex.eatKeyword("select");
-      List<String> fields = selectList();
+      List<String> fields = new ArrayList<>();
+      List<AggregationFn> aggFields = new ArrayList<>();
+
+      while (true) {
+         if (lex.matchAggregate()) {
+            aggFields.add(getAggregate(fields));
+         } else {
+            fields.add(field());
+         }
+
+         if (!lex.matchDelim(',')) {
+            break;
+         }
+         lex.eatDelim(',');
+      }
+
       lex.eatKeyword("from");
       Collection<String> tables = tableList();
       Predicate pred = new Predicate();
@@ -78,7 +99,7 @@ public class Parser {
             orderFields.add(new OrderField(field(), orderType()));
          }
       }
-      return new QueryData(fields, tables, pred, orderFields);
+      return new QueryData(fields, tables, pred, orderFields, aggFields);
    }
 
    private String orderType() {
@@ -95,6 +116,29 @@ public class Parser {
 
       lex.eatKeyword(type);
       return type;
+   }
+
+   private AggregationFn getAggregate(List<String> fields) {
+      String function = lex.eatAggregate();
+      lex.eatDelim('(');
+      String field = field();
+      fields.add(field);
+      lex.eatDelim(')');
+
+      switch (function) {
+      case "sum":
+         return new SumFn(field);
+      case "count":
+         return new CountFn(field);
+      case "avg":
+         return new AvgFn(field);
+      case "min":
+         return new MinFn(field);
+      case "max":
+         return new MaxFn(field);
+      default:
+         return null;
+      }
    }
 
    private List<String> selectList() {

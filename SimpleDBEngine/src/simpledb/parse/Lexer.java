@@ -11,6 +11,7 @@ import simpledb.query.Operator;
  */
 public class Lexer {
    private Collection<String> keywords;
+   private List<String> aggregateWords;
    private StreamTokenizer tok;
    
    /**
@@ -19,6 +20,7 @@ public class Lexer {
     */
    public Lexer(String s) {
       initKeywords();
+      this.aggregateWords = List.of("sum", "count", "avg", "min", "max");
       tok = new StreamTokenizer(new StringReader(s));
       tok.ordinaryChar('.');   //disallow "." in identifiers
       tok.wordChars('_', '_'); //allow "_" in identifiers
@@ -62,7 +64,14 @@ public class Lexer {
    public boolean matchKeyword(String w) {
       return tok.ttype == StreamTokenizer.TT_WORD && tok.sval.equals(w);
    }
-   
+
+   /**
+    * Returns true if the current token is an aggregate keyword.
+    */
+   public boolean matchAggregate() {
+      return tok.ttype == StreamTokenizer.TT_WORD && aggregateWords.contains(tok.sval);
+   }
+
    /**
     * Returns true if the current token is a legal identifier.
     * @return true if the current token is an identifier
@@ -154,6 +163,21 @@ public class Lexer {
    public String eatId() {
       if (!matchId())
          throw new BadSyntaxException();
+      String s = tok.sval;
+      nextToken();
+      return s;
+   }
+
+   /**
+    * Throws an exception if the current token is not an aggregate.
+    * Otherwise, returns aggregate string and moves to the next token.
+    *
+    * @return the string value of the current token.
+    */
+   public String eatAggregate() {
+      if (!matchAggregate()) {
+         throw new BadSyntaxException();
+      }
       String s = tok.sval;
       nextToken();
       return s;
