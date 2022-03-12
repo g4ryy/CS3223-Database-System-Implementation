@@ -54,9 +54,9 @@ public class BasicQueryPlanner implements QueryPlanner {
       }
 
       // Step 6: Aggregate if needed
-       if (!data.aggFields().isEmpty()) {
+      if (!data.aggFields().isEmpty()) {
            p = new GroupByPlan(tx, p, new ArrayList<>(), data.aggFields());
-       }
+      }
 
       return p;
    }
