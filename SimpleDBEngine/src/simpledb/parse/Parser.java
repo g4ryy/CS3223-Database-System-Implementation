@@ -45,7 +45,6 @@ public class Parser {
    public Term term() {
       Expression lhs = expression();
       Operator operator = lex.eatOperator();
-      //lex.eatDelim('=');
       Expression rhs = expression();
       return new Term(lhs, rhs, operator);
    }

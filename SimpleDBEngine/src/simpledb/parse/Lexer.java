@@ -11,7 +11,7 @@ import simpledb.query.Operator;
  */
 public class Lexer {
    private Collection<String> keywords;
-   private List<String> aggregateWords;
+   private Collection<String> aggregateWords;
    private StreamTokenizer tok;
    
    /**
@@ -20,7 +20,7 @@ public class Lexer {
     */
    public Lexer(String s) {
       initKeywords();
-      this.aggregateWords = List.of("sum", "count", "avg", "min", "max");
+      initAggregateWords();
       tok = new StreamTokenizer(new StringReader(s));
       tok.ordinaryChar('.');   //disallow "." in identifiers
       tok.wordChars('_', '_'); //allow "_" in identifiers
@@ -197,6 +197,10 @@ public class Lexer {
                                "insert", "into", "values", "delete", "update", "set", 
                                "create", "table", "int", "varchar", "view", "as", "index", "on",
                                "using", "hash", "btree", "asc", "desc", "order", "by", "group");
+   }
+
+   private void initAggregateWords() {
+   	aggregateWords = Arrays.asList("sum", "count", "avg", "min", "max");
    }
 
    /* Some operators such as <=, <>, != consists of 2 components. This method
