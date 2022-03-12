@@ -16,25 +16,27 @@ public class QueryData {
    private List<OrderField> orderFields;
    private List<AggregationFn> aggFields;
    private List<String> groupByFields;
+   private boolean isDistinct;
 
    /**
     * Saves the field, table list, predicate, ordering fields and aggregation fields.
     */
    public QueryData(List<String> fields, Collection<String> tables,
                     Predicate pred, List<OrderField> orderFields,
-                    List<AggregationFn> aggFields, List<String> groupByFields) {
+                    List<AggregationFn> aggFields, List<String> groupByFields,
+                    boolean isDistinct) {
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
       this.orderFields = orderFields;
       this.aggFields = aggFields;
       this.groupByFields = groupByFields;
-
       for (String field : groupByFields) {
          if (!fields.contains(field)) {
             fields.add(field);
          }
       }
+      this.isDistinct = isDistinct;
    }
    
    /**
@@ -86,6 +88,10 @@ public class QueryData {
     */
    public List<String> groupByFields() {
       return groupByFields;
+   }
+   
+   public boolean isDistinct() {
+	   return isDistinct;
    }
    
    public String toString() {

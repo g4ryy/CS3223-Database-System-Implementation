@@ -55,7 +55,7 @@ public class BasicQueryPlanner implements QueryPlanner {
 
       // Step 6: Sort based on the sort fields if needed
       if (!data.orderFields().isEmpty()) {
-          p = new SortPlan(tx, p, data.orderFields());
+          p = new SortPlan(tx, p, data.orderFields(), data.isDistinct());
       }
       return p;
    }

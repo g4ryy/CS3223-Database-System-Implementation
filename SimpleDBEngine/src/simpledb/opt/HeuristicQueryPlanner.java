@@ -48,19 +48,19 @@ public class HeuristicQueryPlanner implements QueryPlanner {
          else  // no applicable join
             currentplan = getLowestProductPlan(currentplan);
       }
-      
-      // Step 4.  Project on the field names and return
-      currentplan = new ProjectPlan(currentplan, data.fields());
 
-      // Step 5: Group by and aggregate if needed
+      // Step 4: Group by and aggregate if needed
       if (!data.groupByFields().isEmpty() || !data.aggFields().isEmpty()) {
          currentplan = new GroupByPlan(tx, currentplan, new ArrayList<>(), data.aggFields());
       }
 
-      // Step 6: Sort on the sort
+      // Step 5: Sort by field names and specified ordering, remove duplicates if requested
       if (data.orderFields().size() > 0 ) {
-         currentplan = new SortPlan(tx, currentplan, data.orderFields());
+         currentplan = new SortPlan(tx, currentplan, data.orderFields(), data.isDistinct());
       }
+      
+      // Step 6.  Project on the field names
+      currentplan = new ProjectPlan(currentplan, data.fields());
 
       return currentplan;
    }

@@ -42,8 +42,8 @@ public class CreateIndexData {
    }
 
    /**
-    * Returns the type of the indexed field.
-    * @return the type of the indexed field
+    * Returns the type of index (hash or btree) to be created.
+    * @return the type of the index
     */
    public String indexType() {
       return idxType;

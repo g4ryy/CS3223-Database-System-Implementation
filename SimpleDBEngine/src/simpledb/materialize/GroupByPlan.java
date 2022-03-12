@@ -31,7 +31,7 @@ public class GroupByPlan implements Plan {
     */
    public GroupByPlan(Transaction tx, Plan p, List<String> groupfields, List<AggregationFn> aggfns) {
       this.p = new SortPlan(tx, p, groupfields.stream()
-            .map(fld -> new OrderField(fld, "asc")).collect(Collectors.toList()));
+            .map(fld -> new OrderField(fld, "asc")).collect(Collectors.toList()), false);
       this.groupfields = groupfields;
       this.aggfns = aggfns;
       for (String fldname : groupfields)

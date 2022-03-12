@@ -67,7 +67,7 @@ class TablePlanner {
       Predicate joinpred = mypred.joinSubPred(myschema, currsch);
       if (joinpred == null)
          return null;
-
+      
       PriorityQueue<Plan> pq = new PriorityQueue<>((x, y) -> x.blocksAccessed() - y.blocksAccessed());
       Plan tempPlan = makeIndexJoin(current, currsch);
       if (tempPlan != null) {
@@ -80,10 +80,7 @@ class TablePlanner {
       }
 
       if (pq.size() == 0) {
-         tempPlan = makeProductJoin(current, currsch);
-         if (tempPlan != null) {
-            pq.add(tempPlan);
-         }
+         return makeProductJoin(current, currsch);
       }
 
       return pq.poll();
@@ -111,7 +108,7 @@ class TablePlanner {
       }
       return null;
    }
-
+   
    private Plan makeMergeJoin(Plan current, Schema currsch, Predicate joinPred) {
       for (String fldname : myschema.fields()) {
          String matchField = joinPred.equatesWithField(fldname);
