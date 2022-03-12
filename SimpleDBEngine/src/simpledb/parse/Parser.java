@@ -147,16 +147,6 @@ public class Parser {
          return null;
       }
    }
-
-   private List<String> selectList() {
-      List<String> L = new ArrayList<String>();
-      L.add(field());
-      if (lex.matchDelim(',')) {
-         lex.eatDelim(',');
-         L.addAll(selectList());
-      }
-      return L;
-   }
    
    private Collection<String> tableList() {
       Collection<String> L = new ArrayList<String>();
