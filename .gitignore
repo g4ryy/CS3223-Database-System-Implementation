@@ -4,3 +4,5 @@
 /SimpleDBClients/bin/
 /SimpleDBEngine/studentdb/
 /SimpleDBClients/studentdb/
+*.tbl
+*.log

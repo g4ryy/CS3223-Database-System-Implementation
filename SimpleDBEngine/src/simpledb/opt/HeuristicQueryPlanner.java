@@ -51,7 +51,7 @@ public class HeuristicQueryPlanner implements QueryPlanner {
 
       // Step 4: Group by and aggregate if needed
       if (!data.groupByFields().isEmpty() || !data.aggFields().isEmpty()) {
-         currentplan = new GroupByPlan(tx, currentplan, new ArrayList<>(), data.aggFields());
+         currentplan = new GroupByPlan(tx, currentplan, data.groupByFields(), data.aggFields());
       }
 
       // Step 5: Sort by field names and specified ordering, remove duplicates if requested

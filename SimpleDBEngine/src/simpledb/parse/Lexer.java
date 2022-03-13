@@ -214,7 +214,7 @@ public class Lexer {
          output = "!=";
          break;
       case "<":
-         if (!matchStringConstant() && !matchIntConstant()) {
+         if (!matchStringConstant() && !matchIntConstant() && tok.ttype != StreamTokenizer.TT_WORD) {
             if (!matchDelim('=') && !matchDelim('>')) {
                throw new BadSyntaxException();
             }
@@ -223,7 +223,7 @@ public class Lexer {
          }
          break;
       case ">":
-         if (!matchStringConstant() && !matchIntConstant()) {
+         if (!matchStringConstant() && !matchIntConstant() && tok.ttype != StreamTokenizer.TT_WORD) {
             if (!matchDelim('=')) {
                throw new BadSyntaxException();
             }
