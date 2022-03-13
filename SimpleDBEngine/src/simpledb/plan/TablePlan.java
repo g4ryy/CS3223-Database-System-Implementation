@@ -74,8 +74,4 @@ public class TablePlan implements Plan {
    public String toString() {
 	   return String.format("(Scan on %s)", tblname);
    }
-   
-   public String getTblName() {
-	   return tblname;
-   }
 }

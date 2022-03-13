@@ -88,4 +88,8 @@ public class IndexJoinPlan implements Plan {
    public Schema schema() {
       return sch;
    }
+   
+   public String toString() {
+	   return String.format("(%s index join (using index on %s) %s)", p1.toString(), ii.getFldName(), p2.toString());
+   }
 }

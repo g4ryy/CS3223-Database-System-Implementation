@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
  */
 public class MergeJoinPlan implements Plan {
    private Plan p1, p2;
+   private Plan originalP1, originalP2;
    private String fldname1, fldname2;
    private Schema sch = new Schema();
    
@@ -29,6 +30,8 @@ public class MergeJoinPlan implements Plan {
     */
    public MergeJoinPlan(Transaction tx, Plan p1, Plan p2, String fldname1, String fldname2) {
       this.fldname1 = fldname1;
+      this.originalP1 = p1;
+      this.originalP2 = p2;
       List<String> sortlist1 = Arrays.asList(fldname1);
       this.p1 = new SortPlan(tx, p1, sortlist1.stream()
             .map(fld -> new OrderField(fld, "asc")).collect(Collectors.toList()), false);
@@ -100,6 +103,10 @@ public class MergeJoinPlan implements Plan {
     */
    public Schema schema() {
       return sch;
+   }
+   
+   public String toString() {
+	   return String.format("(%s sort-merge join %s)", originalP1.toString(), originalP2.toString());
    }
 }
 

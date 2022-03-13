@@ -112,4 +112,8 @@ public class MultibufferProductPlan implements Plan {
       dest.close();
       return t;
    }
+   
+   public String toString() {
+	   return String.format("(%s X %s)", lhs.toString(), rhs.toString());
+   }
 }

@@ -4,7 +4,6 @@ import simpledb.record.*;
 import simpledb.query.*;
 import simpledb.metadata.IndexInfo;
 import simpledb.plan.Plan;
-import simpledb.plan.TablePlan;
 import simpledb.index.Index;
 import simpledb.index.query.IndexSelectScan;
 
@@ -79,7 +78,6 @@ public class IndexSelectPlan implements Plan {
    }
    
    public String toString() {
-	   TablePlan tblPlan = (TablePlan) p;
-	   return String.format("(Index scan on %s(%s))", tblPlan.getTblName(), ii.getFldName());
+	   return String.format("(Index scan on %s)", ii.getFldName());
    }
 }
