@@ -106,7 +106,7 @@ public class MergeJoinPlan implements Plan {
    }
    
    public String toString() {
-	   return String.format("(%s sort-merge join %s)", originalP1.toString(), originalP2.toString());
+	   return String.format("(%s) sort-merge join (%s)", originalP1.toString(), originalP2.toString());
    }
 }
 

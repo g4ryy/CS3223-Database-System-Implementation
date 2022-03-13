@@ -78,6 +78,6 @@ public class IndexSelectPlan implements Plan {
    }
    
    public String toString() {
-	   return String.format("(Index scan on %s)", ii.getFldName());
+	   return String.format("Index scan on %s", ii.getFldName());
    }
 }

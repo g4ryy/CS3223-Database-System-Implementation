@@ -18,6 +18,7 @@ public class SortPlan implements Plan {
    private RecordComparator comp;
    private boolean isDistinct;
    private List<String> selectFields;
+   private List<OrderField> sortFields;
    
    /**
     * Create a sort plan for the specified query.
@@ -32,6 +33,7 @@ public class SortPlan implements Plan {
 	      comp = new RecordComparator(sortfields);
 	      this.isDistinct = isDistinct;
 	      this.selectFields = new ArrayList<>();
+	      this.sortFields = sortfields;
    }
    
    public SortPlan(Transaction tx, Plan p, List<OrderField> sortfields, boolean isDistinct, List<String> selectFields) {
@@ -41,6 +43,7 @@ public class SortPlan implements Plan {
       comp = new RecordComparator(sortfields);
       this.isDistinct = isDistinct;
       this.selectFields = selectFields;
+      this.sortFields = sortfields;
    }
 
    /**
@@ -218,5 +221,22 @@ public class SortPlan implements Plan {
       for (String fldname : sch.fields())
          dest.setVal(fldname, src.getVal(fldname));
       return src.next();
+   }
+   
+   public String toString() {
+	   String sortFieldsStr = "";
+	   for (OrderField sortField : sortFields) {
+		   sortFieldsStr += String.format("%s %s, ", sortField.getField(), sortField.getType());
+	   }
+	   sortFieldsStr = sortFieldsStr.substring(0, sortFieldsStr.length() - 2);
+	   if (!isDistinct) {
+		   return String.format("sort(%s)[%s]", sortFieldsStr, p.toString());
+	   }
+	   String selectFieldsStr = "";
+	   for (String selectField : selectFields) {
+		   selectFieldsStr += selectField + ", ";
+	   }
+	   selectFieldsStr = selectFieldsStr.substring(0, selectFieldsStr.length() - 2);
+	   return String.format("distinct(%s)[sort(%s)[%s]]", selectFieldsStr, sortFieldsStr, p.toString());
    }
 }

@@ -85,6 +85,6 @@ public class SelectPlan implements Plan {
    }
    
    public String toString() {
-	   return String.format("(%s: %s)", p.toString().substring(1, p.toString().length() - 1), pred.toString());
+	   return String.format("%s: %s", p.toString(), pred.toString());
    }
 }

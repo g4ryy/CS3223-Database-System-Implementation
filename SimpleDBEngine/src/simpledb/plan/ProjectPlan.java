@@ -11,6 +11,7 @@ import simpledb.query.*;
 public class ProjectPlan implements Plan {
    private Plan p;
    private Schema schema = new Schema();
+   private List<String> fieldList;
 
    /**
     * Creates a new project node in the query tree,
@@ -22,6 +23,7 @@ public class ProjectPlan implements Plan {
       this.p = p;
       for (String fldname : fieldlist)
          schema.add(fldname, p.schema());
+      this.fieldList = fieldlist;
    }
 
    /**
@@ -68,5 +70,14 @@ public class ProjectPlan implements Plan {
     */
    public Schema schema() {
       return schema;
+   }
+   
+   public String toString() {
+	   String projectFieldsStr = "";
+	   for (String projectField : fieldList) {
+		   projectFieldsStr += projectField + ", ";
+	   }
+	   projectFieldsStr = projectFieldsStr.substring(0, projectFieldsStr.length() - 2);
+	   return String.format("project(%s)[%s]", projectFieldsStr, p.toString());
    }
 }

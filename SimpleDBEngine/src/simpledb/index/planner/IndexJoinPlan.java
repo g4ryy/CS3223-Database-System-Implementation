@@ -90,6 +90,6 @@ public class IndexJoinPlan implements Plan {
    }
    
    public String toString() {
-	   return String.format("(%s index join (using index on %s) %s)", p1.toString(), ii.getFldName(), p2.toString());
+	   return String.format("(%s) index join (%s) using index on %s)", p1.toString(), p2.toString(), ii.getFldName());
    }
 }
