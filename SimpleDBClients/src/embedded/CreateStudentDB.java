@@ -27,7 +27,8 @@ public class CreateStudentDB {
                "(6, 'kim', 20, 2020)",
                "(7, 'art', 30, 2021)",
                "(8, 'pat', 20, 2019)",
-         "(9, 'lee', 10, 2021)"};
+               "(9, 'lee', 10, 2021)",
+               "(10, 'josh', 10, 2017)"};
          for (int i=0; i<studvals.length; i++)
             stmt.executeUpdate(s + studvals[i]);
          System.out.println("STUDENT records inserted.");
