@@ -1,6 +1,7 @@
 package simpledb.plan;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import simpledb.materialize.*;
 import simpledb.tx.Transaction;
@@ -45,8 +46,7 @@ public class BasicQueryPlanner implements QueryPlanner {
       //Step 3: Add a selection plan for the predicate
       p = new SelectPlan(p, data.pred());
       
-      //Step 4: Project on the field names
-      p = new ProjectPlan(p, data.fields());
+
 
       // Step 5: Group by and aggregate if needed
       if (!data.groupByFields().isEmpty() || !data.aggFields().isEmpty()) {
@@ -57,6 +57,10 @@ public class BasicQueryPlanner implements QueryPlanner {
       if (!data.orderFields().isEmpty()) {
           p = new SortPlan(tx, p, data.orderFields(), data.isDistinct());
       }
+
+      data.fields().addAll(data.aggFields().stream().map(AggregationFn::fieldName).collect(Collectors.toList()));
+      //Step 4: Project on the field names
+       p = new ProjectPlan(p, data.fields());
       return p;
    }
 }

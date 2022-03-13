@@ -31,11 +31,6 @@ public class QueryData {
       this.orderFields = orderFields;
       this.aggFields = aggFields;
       this.groupByFields = groupByFields;
-      for (String field : groupByFields) {
-         if (!fields.contains(field)) {
-            fields.add(field);
-         }
-      }
       this.isDistinct = isDistinct;
    }
    

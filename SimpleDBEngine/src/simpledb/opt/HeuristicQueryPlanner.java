@@ -1,7 +1,9 @@
 package simpledb.opt;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
+import simpledb.materialize.AggregationFn;
 import simpledb.materialize.GroupByPlan;
 import simpledb.materialize.SortPlan;
 import simpledb.tx.Transaction;
@@ -58,7 +60,8 @@ public class HeuristicQueryPlanner implements QueryPlanner {
       if (data.orderFields().size() > 0 ) {
          currentplan = new SortPlan(tx, currentplan, data.orderFields(), data.isDistinct());
       }
-      
+
+      data.fields().addAll(data.aggFields().stream().map(AggregationFn::fieldName).collect(Collectors.toList()));
       // Step 6.  Project on the field names
       currentplan = new ProjectPlan(currentplan, data.fields());
 

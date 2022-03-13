@@ -73,7 +73,7 @@ public class Parser {
 
       while (true) {
          if (lex.matchAggregate()) {
-            aggFields.add(getAggregate(fields));
+            aggFields.add(getAggregate());
          } else {
             fields.add(field());
          }
@@ -144,11 +144,10 @@ public class Parser {
       return type;
    }
 
-   private AggregationFn getAggregate(List<String> fields) {
+   private AggregationFn getAggregate() {
       String function = lex.eatAggregate();
       lex.eatDelim('(');
       String field = field();
-      fields.add(field);
       lex.eatDelim(')');
 
       switch (function) {
