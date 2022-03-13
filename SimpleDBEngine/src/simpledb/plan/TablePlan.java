@@ -70,4 +70,12 @@ public class TablePlan implements Plan {
    public Schema schema() {
       return layout.schema();
    }
+   
+   public String toString() {
+	   return String.format("(Scan on %s)", tblname);
+   }
+   
+   public String getTblName() {
+	   return tblname;
+   }
 }

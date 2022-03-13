@@ -121,6 +121,6 @@ public class Term {
    }
    
    public String toString() {
-      return lhs.toString() + operator + rhs.toString();
+	  return String.format("%s %s %s", lhs.toString(), operator, rhs.toString());
    }
 }

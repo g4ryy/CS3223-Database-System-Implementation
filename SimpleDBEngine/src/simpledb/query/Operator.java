@@ -39,4 +39,8 @@ public class Operator {
             return first.equals(second);
         }
     }
+    
+    public String toString() {
+    	return operator;
+    }
 }
