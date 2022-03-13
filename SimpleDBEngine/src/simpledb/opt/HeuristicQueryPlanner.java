@@ -58,7 +58,7 @@ public class HeuristicQueryPlanner implements QueryPlanner {
 
       // Step 5: Sort by field names and specified ordering, remove duplicates if requested
       if (data.orderFields().size() > 0 ) {
-         currentplan = new SortPlan(tx, currentplan, data.orderFields(), data.isDistinct());
+         currentplan = new SortPlan(tx, currentplan, data.orderFields(), data.isDistinct(), data.fields());
       }
 
       data.fields().addAll(data.aggFields().stream().map(AggregationFn::fieldName).collect(Collectors.toList()));
