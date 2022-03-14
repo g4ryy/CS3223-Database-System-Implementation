@@ -136,6 +136,10 @@ public class Predicate {
       }
       return null;
    }
+   
+   public List<Term> getTerms() {
+	   return terms;
+   }
 
    public String toString() {
       Iterator<Term> iter = terms.iterator();

@@ -47,6 +47,19 @@ class TablePlanner {
     * @return a select plan for the table.
     */
    public Plan makeSelectPlan() {
+	  Predicate selectpred = mypred.selectSubPred(myschema);
+	  if (selectpred != null) {
+		  for (Term term : selectpred.getTerms()) {
+			  Expression lhs = term.getLhs();
+			  Expression rhs = term.getRhs();
+			  Operator operator = term.getOperator();
+			  if (indexes.keySet().contains(lhs.asFieldName()) || indexes.keySet().contains(rhs.asFieldName())) {
+				  if (!operator.toString().equals("=")) {
+					  return addSelectPred(myplan);
+				  }
+			  }
+		  }
+	  }
       Plan p = makeIndexSelect();
       if (p == null)
          p = myplan;

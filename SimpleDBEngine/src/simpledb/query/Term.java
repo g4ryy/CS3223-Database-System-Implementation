@@ -123,4 +123,16 @@ public class Term {
    public String toString() {
 	  return String.format("%s %s %s", lhs.toString(), operator, rhs.toString());
    }
+   
+   public Expression getLhs() {
+	   return lhs;
+   }
+   
+   public Expression getRhs() {
+	   return rhs;
+   }
+   
+   public Operator getOperator() {
+	   return operator;
+   }
 }
