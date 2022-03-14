@@ -3,6 +3,7 @@ package simpledb.opt;
 import java.util.Map;
 import java.util.PriorityQueue;
 
+import simpledb.materialize.HashJoinPlan;
 import simpledb.materialize.MergeJoinPlan;
 import simpledb.tx.Transaction;
 import simpledb.record.*;
@@ -67,7 +68,8 @@ class TablePlanner {
       Predicate joinpred = mypred.joinSubPred(myschema, currsch);
       if (joinpred == null)
          return null;
-      
+
+
       PriorityQueue<Plan> pq = new PriorityQueue<>((x, y) -> x.blocksAccessed() - y.blocksAccessed());
       Plan tempPlan = makeIndexJoin(current, currsch);
       if (tempPlan != null) {
@@ -77,6 +79,10 @@ class TablePlanner {
       if (tempPlan != null) {
          pq.add(tempPlan);
 
+      }
+      tempPlan = makeHashJoin(current, currsch, joinpred);
+      if (tempPlan != null) {
+         pq.add(tempPlan);
       }
 
       if (pq.size() == 0) {
@@ -115,6 +121,19 @@ class TablePlanner {
 
          if (matchField != null && currsch.hasField(matchField)) {
             Plan p = new MergeJoinPlan(tx, myplan, current, fldname, matchField);
+            p = addSelectPred(p);
+            return addJoinPred(p, currsch);
+         }
+      }
+      return null;
+   }
+
+   private Plan makeHashJoin(Plan current, Schema currsch, Predicate joinPred) {
+      for (String fldName : myschema.fields()) {
+         String matchField = joinPred.equatesWithField(fldName);
+
+         if (matchField != null && currsch.hasField(matchField)) {
+            Plan p = new HashJoinPlan(tx, myplan, current, fldName, matchField);
             p = addSelectPred(p);
             return addJoinPred(p, currsch);
          }
