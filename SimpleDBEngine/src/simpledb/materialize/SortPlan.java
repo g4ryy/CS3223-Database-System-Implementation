@@ -19,6 +19,7 @@ public class SortPlan implements Plan {
    private boolean isDistinct;
    private List<String> selectFields;
    private List<OrderField> sortFields;
+   private int numOfPasses;
    
    /**
     * Create a sort plan for the specified query.
@@ -34,6 +35,7 @@ public class SortPlan implements Plan {
 	      this.isDistinct = isDistinct;
 	      this.selectFields = new ArrayList<>();
 	      this.sortFields = sortfields;
+	      numOfPasses = 0;
    }
    
    public SortPlan(Transaction tx, Plan p, List<OrderField> sortfields, boolean isDistinct, List<String> selectFields) {
@@ -44,6 +46,7 @@ public class SortPlan implements Plan {
       this.isDistinct = isDistinct;
       this.selectFields = selectFields;
       this.sortFields = sortfields;
+      numOfPasses = 0;
    }
 
    /**
@@ -55,12 +58,16 @@ public class SortPlan implements Plan {
    public Scan open() {
       Scan src = p.open();
       List<TempTable> runs = splitIntoRuns(src);
+      numOfPasses += 1;
       src.close();
-      if (runs.size() == 1) {
+      if (runs.size() == 1 && isDistinct) {
+    	  // To remove duplicates
     	  runs = mergeSingleRunWithEmptyRun(runs);
+    	  numOfPasses += 1;
       }
       while (runs.size() > 1) {
     	  runs = doAMergeIteration(runs);
+    	  numOfPasses += 1;
       }
       return new SortScan(runs, comp);
    }
@@ -221,6 +228,10 @@ public class SortPlan implements Plan {
       for (String fldname : sch.fields())
          dest.setVal(fldname, src.getVal(fldname));
       return src.next();
+   }
+   
+   public int getNumOfPasses() {
+	   return numOfPasses;
    }
    
    public String toString() {

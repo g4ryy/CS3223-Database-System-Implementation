@@ -57,18 +57,22 @@ public class MergeJoinPlan implements Plan {
    }
    
    /**
-    * Return the number of block acceses required to
+    * Return the number of block accesses required to
     * mergejoin the sorted tables.
-    * Since a mergejoin can be preformed with a single
+    * Since a mergejoin can be performed with a single
     * pass through each table, the method returns
     * the sum of the block accesses of the 
     * materialized sorted tables.
-    * It does <i>not</i> include the one-time cost
+    * It includes the one-time cost
     * of materializing and sorting the records.
     * @see simpledb.plan.Plan#blocksAccessed()
     */
    public int blocksAccessed() {
-      return p1.blocksAccessed() + p2.blocksAccessed();
+	   int numOfPassesRequiredToSortP1 = ((SortPlan) p1).getNumOfPasses();
+	   int numOfPassesRequiredToSortP2 = ((SortPlan) p2).getNumOfPasses();
+	   return 2 * p1.blocksAccessed() * numOfPassesRequiredToSortP1 
+			   + 2 * p2.blocksAccessed() * numOfPassesRequiredToSortP2
+			   + p1.blocksAccessed() + p2.blocksAccessed();
    }
    
    /**
