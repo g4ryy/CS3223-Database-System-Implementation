@@ -61,6 +61,7 @@ public class BasicQueryPlanner implements QueryPlanner {
       // Step 6: Project on the field names
       p = new ProjectPlan(p, data.fields());
       
+      // Display the query plan
       System.out.println("Query Plan:");
       System.out.println(p);
       

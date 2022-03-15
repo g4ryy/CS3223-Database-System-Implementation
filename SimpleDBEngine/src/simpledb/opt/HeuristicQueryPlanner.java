@@ -66,6 +66,7 @@ public class HeuristicQueryPlanner implements QueryPlanner {
       // Step 6.  Project on the field names
       currentplan = new ProjectPlan(currentplan, data.fields());
 
+      // Display the query plan
       System.out.println("Query Plan:");
       System.out.println(currentplan);
 
