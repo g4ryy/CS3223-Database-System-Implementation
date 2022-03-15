@@ -56,7 +56,7 @@ public class HashJoinPlan implements Plan {
     public Scan open() {
         Map<Integer, TempTable> smallPartitions = getPartitions(smallPlan, smallField);
         Map<Integer, TempTable> largePartitions = getPartitions(largePlan, largeField);
-        return new HashJoinScan(smallPartitions, largePartitions, smallField, largeField);
+        return new HashJoinScan(smallPartitions, largePartitions, smallField, largeField, smallPlan.schema());
     }
 
     private Map<Integer, TempTable> getPartitions(Plan p, String joinField) {
