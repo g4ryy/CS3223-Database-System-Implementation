@@ -76,4 +76,8 @@ public class ProductPlan implements Plan {
    public Schema schema() {
       return schema;
    }
+   
+   public String toString() {
+	   return String.format("(%s) X (%s)", p1.toString(), p2.toString());
+   }
 }
