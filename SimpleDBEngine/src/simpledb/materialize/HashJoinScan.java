@@ -32,15 +32,16 @@ public class HashJoinScan implements Scan {
      * @param largePartitions the larger partitioned scan
      * @param smallField the join field of the smaller partitioned table
      * @param largeField the join field of the larger partitioned table
+     * @param schema the schema of the smaller scan
      */
     public HashJoinScan(Map<Integer, TempTable> smallPartitions, Map<Integer, TempTable> largePartitions,
-                        String smallField, String largeField) {
+                        String smallField, String largeField, Schema schema) {
         this.smallPartitions = smallPartitions;
         this.largePartitions = largePartitions;
         this.smallField = smallField;
         this.largeField = largeField;
         smallPartitions.keySet().forEach(p -> partitionQueue.offer(p));
-        this.smallSchema = smallPartitions.get(partitionQueue.peek()).getLayout().schema();
+        this.smallSchema = schema;
         beforeFirst();
     }
 
@@ -49,7 +50,9 @@ public class HashJoinScan implements Scan {
      * @see simpledb.query.Scan#close()
      */
     public void close() {
-        largeScan.close();
+        if (largeScan != null) {
+            largeScan.close();
+        }
     }
 
     private boolean nextPartition() {
@@ -106,22 +109,25 @@ public class HashJoinScan implements Scan {
      * @see simpledb.query.Scan#next()
      */
     public boolean next() {
-        Constant val = largeScan.getVal(largeField);
-        if (map.containsKey(val) &&
-            smallScanIndex < map.get(val).size() - 1) {
-            smallScanIndex++;
-            return true;
-        }
+        // largeScan == null indicates that the smaller scan is empty, so just return false
+        if (largeScan != null) {
+            Constant val = largeScan.getVal(largeField);
+            if (map.containsKey(val) &&
+                smallScanIndex < map.get(val).size() - 1) {
+                smallScanIndex++;
+                return true;
+            }
 
-        while (largeScan.next()) {
-            if (map.containsKey(largeScan.getVal(largeField))) {
-                smallScanIndex = -1;
+            while (largeScan.next()) {
+                if (map.containsKey(largeScan.getVal(largeField))) {
+                    smallScanIndex = -1;
+                    return next();
+                }
+            }
+
+            if (nextPartition()) {
                 return next();
             }
-        }
-
-        if (nextPartition()) {
-            return next();
         }
 
         return false;
