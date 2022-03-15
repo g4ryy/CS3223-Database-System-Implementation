@@ -14,7 +14,7 @@ import simpledb.record.*;
  *
  */
 public class SortScan implements Scan {
-   private UpdateScan s1, s2=null, currentscan=null;
+   private UpdateScan s1=null, s2=null, currentscan=null;
    private RecordComparator comp;
    private boolean hasmore1, hasmore2=false;
    private List<RID> savedposition;
@@ -28,8 +28,13 @@ public class SortScan implements Scan {
     */
    public SortScan(List<TempTable> runs, RecordComparator comp) {
       this.comp = comp;
-      s1 = (UpdateScan) runs.get(0).open();
-      hasmore1 = s1.next();
+      if (runs.size() > 0) {
+    	  s1 = (UpdateScan) runs.get(0).open();
+          hasmore1 = s1.next();
+      } else {
+    	  hasmore1 = false;
+      }
+      
       if (runs.size() > 1) {
          s2 = (UpdateScan) runs.get(1).open();
          hasmore2 = s2.next();
@@ -45,8 +50,10 @@ public class SortScan implements Scan {
     */
    public void beforeFirst() {
       currentscan = null;
-      s1.beforeFirst();
-      hasmore1 = s1.next();
+      if (s1 != null) {
+          s1.beforeFirst();
+          hasmore1 = s1.next();
+      }
       if (s2 != null) {
          s2.beforeFirst();
          hasmore2 = s2.next();
@@ -88,7 +95,9 @@ public class SortScan implements Scan {
     * @see simpledb.query.Scan#close()
     */
    public void close() {
-      s1.close();
+	  if (s1 != null) {
+		  s1.close();
+	  }
       if (s2 != null)
          s2.close();
    }
@@ -133,7 +142,7 @@ public class SortScan implements Scan {
     * so that it can be restored at a later time.
     */
    public void savePosition() {
-      RID rid1 = s1.getRid();
+      RID rid1 = (s1 == null) ? null : s1.getRid();
       RID rid2 = (s2 == null) ? null : s2.getRid();
       savedposition = Arrays.asList(rid1,rid2);
    }
@@ -144,7 +153,8 @@ public class SortScan implements Scan {
    public void restorePosition() {
       RID rid1 = savedposition.get(0);
       RID rid2 = savedposition.get(1);
-      s1.moveToRid(rid1);
+      if (rid1 != null)
+         s1.moveToRid(rid1);
       if (rid2 != null)
          s2.moveToRid(rid2);
    }

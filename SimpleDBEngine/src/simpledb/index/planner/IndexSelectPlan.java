@@ -76,4 +76,8 @@ public class IndexSelectPlan implements Plan {
    public Schema schema() {
       return p.schema(); 
    }
+   
+   public String toString() {
+	   return String.format("Index scan on %s", ii.getFldName());
+   }
 }

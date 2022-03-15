@@ -156,5 +156,9 @@ public class HashJoinPlan implements Plan {
     public Schema schema() {
         return sch;
     }
+    
+    public String toString() {
+ 	   return String.format("(%s) hash join (%s)", smallPlan.toString(), largePlan.toString());
+    }
 }
 

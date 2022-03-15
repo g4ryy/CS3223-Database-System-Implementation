@@ -91,8 +91,13 @@ public class QueryData {
    
    public String toString() {
       String result = "select ";
+      if (isDistinct) {
+    	  result += "distinct ";
+      }
       for (String fldname : fields)
          result += fldname + ", ";
+      for (AggregationFn aggFn : aggFields)
+          result += aggFn.fieldName() + ", ";
       result = result.substring(0, result.length()-2); //remove final comma
       result += " from ";
       for (String tblname : tables)
@@ -101,6 +106,13 @@ public class QueryData {
       String predstring = pred.toString();
       if (!predstring.equals(""))
          result += " where " + predstring;
+      if (groupByFields.size() > 0) {
+          result += " group by ";
+          for (String groupByField : groupByFields) {
+             result += groupByField + ", ";
+          }
+          result = result.substring(0, result.length()-2); //remove final comma
+       }
       if (orderFields.size() > 0) {
          result += " order by ";
          for (OrderField orderField : orderFields) {

@@ -17,6 +17,8 @@ public class IndexJoinScan implements Scan {
    private Index idx;
    private String joinfield;
    private TableScan rhs;  
+   private boolean lhsIsEmpty;
+   private boolean rhsIsEmpty;
    
    /**
     * Creates an index join scan for the specified LHS scan and 
@@ -31,6 +33,9 @@ public class IndexJoinScan implements Scan {
       this.idx  = idx;
       this.joinfield = joinfield;
       this.rhs = rhs;
+      lhsIsEmpty = !lhs.next();
+      rhsIsEmpty = !rhs.next();
+      rhs.beforeFirst();
       beforeFirst();
    }
    
@@ -56,6 +61,9 @@ public class IndexJoinScan implements Scan {
     * @see simpledb.query.Scan#next()
     */
    public boolean next() {
+	  if (lhsIsEmpty || rhsIsEmpty) {
+		  return false;
+	  }
       while (true) {
          if (idx.next()) {
             rhs.moveToRid(idx.getDataRid());
@@ -118,7 +126,9 @@ public class IndexJoinScan implements Scan {
    }
 
    private void resetIndex() {
-      Constant searchkey = lhs.getVal(joinfield);
-      idx.beforeFirst(searchkey);
+	  if (!lhsIsEmpty) {
+		  Constant searchkey = lhs.getVal(joinfield);
+	      idx.beforeFirst(searchkey);
+	  }
    }
 }

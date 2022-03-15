@@ -11,6 +11,8 @@ public class MergeJoinScan implements Scan {
    private SortScan s2;
    private String fldname1, fldname2;
    private Constant joinval = null;
+   private boolean s1IsEmpty;
+   private boolean s2IsEmpty;
    
    /**
     * Create a mergejoin scan for the two underlying sorted scans.
@@ -24,6 +26,8 @@ public class MergeJoinScan implements Scan {
       this.s2 = s2;
       this.fldname1 = fldname1;
       this.fldname2 = fldname2;
+      s1IsEmpty = !s1.next();
+      s2IsEmpty = !s2.next();
       beforeFirst();
    }
    
@@ -61,6 +65,9 @@ public class MergeJoinScan implements Scan {
     * @see simpledb.query.Scan#next()
     */
    public boolean next() {
+	  if (s1IsEmpty || s2IsEmpty) {
+		  return false;
+	  }
       boolean hasmore2 = s2.next();
       if (hasmore2 && joinval != null && s2.getVal(fldname2).equals(joinval))
          return true;
