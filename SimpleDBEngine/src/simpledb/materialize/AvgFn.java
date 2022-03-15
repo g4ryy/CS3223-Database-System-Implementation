@@ -58,4 +58,8 @@ public class AvgFn implements AggregationFn {
     public Constant value() {
         return new Constant(sum/count);
     }
+
+    public String getField() {
+        return fldname;
+    }
 }

@@ -54,4 +54,8 @@ public class SumFn implements AggregationFn {
     public Constant value() {
         return new Constant(sum);
     }
+
+    public String getField() {
+        return fldname;
+    }
 }
