@@ -26,6 +26,7 @@ public class SortPlan implements Plan {
     * @param p the plan for the underlying query
     * @param sortfields the fields to sort by
     * @param tx the calling transaction
+    * @param isDistinct a boolean value indicating if distinct tuples have to be returned
     */
    public SortPlan(Transaction tx, Plan p, List<OrderField> sortfields, boolean isDistinct) {
 	      this.tx = tx;
@@ -38,6 +39,14 @@ public class SortPlan implements Plan {
 	      numOfPasses = 0;
    }
    
+   /**
+    * Create a sort plan for the specified query.
+    * @param p the plan for the underlying query
+    * @param sortfields the fields to sort by
+    * @param tx the calling transaction
+    * @param isDistinct a boolean value indicating if distinct tuples have to be returned
+    * @param selectFields a list of field names appearing in the select clause of the query
+    */
    public SortPlan(Transaction tx, Plan p, List<OrderField> sortfields, boolean isDistinct, List<String> selectFields) {
       this.tx = tx;
       this.p = p;
