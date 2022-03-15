@@ -53,4 +53,8 @@ public class MinFn implements AggregationFn {
     public Constant value() {
         return val;
     }
+
+    public String getField() {
+        return fldname;
+    }
 }

@@ -34,4 +34,10 @@ public interface AggregationFn {
     * @return the computed aggregation value
     */
    Constant value();
+
+   /**
+    * Return the name of the field that is being aggregated
+    * @return the name of the field that is being aggregated
+    */
+   String getField();
 }

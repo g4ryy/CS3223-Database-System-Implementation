@@ -7,7 +7,7 @@ import simpledb.query.*;
  * @author Edward Sciore
  */
 public class MaxFn implements AggregationFn {
-   private String fldname;
+   String fldname;
    private Constant val;
    
    /**
@@ -52,5 +52,9 @@ public class MaxFn implements AggregationFn {
     */
    public Constant value() {
       return val;
+   }
+
+   public String getField() {
+      return fldname;
    }
 }
