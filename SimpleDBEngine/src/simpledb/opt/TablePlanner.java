@@ -5,6 +5,7 @@ import java.util.PriorityQueue;
 
 import simpledb.materialize.HashJoinPlan;
 import simpledb.materialize.MergeJoinPlan;
+import simpledb.materialize.NestedLoopsJoinPlan;
 import simpledb.tx.Transaction;
 import simpledb.record.*;
 import simpledb.query.*;
@@ -98,6 +99,10 @@ class TablePlanner {
       if (tempPlan != null) {
          pq.add(tempPlan);
       }
+//      tempPlan = makeNestedLoopsJoin(current, currsch, joinpred);
+//      if (tempPlan != null) {
+//    	  pq.add(tempPlan);
+//      }
 
       if (pq.size() == 0) {
          return makeProductJoin(current, currsch);
@@ -165,6 +170,19 @@ class TablePlanner {
          }
       }
       return null;
+   }
+   
+   private Plan makeNestedLoopsJoin(Plan current, Schema currsch, Predicate joinPred) {
+	   for (String fldName : myschema.fields()) {
+		   String matchField = joinPred.equatesWithField(fldName);
+
+		   if (matchField != null && currsch.hasField(matchField)) {
+			   Plan p = new NestedLoopsJoinPlan(tx, myplan, current, fldName, matchField, new Operator(">"));
+			   p = addSelectPred(p);
+			   return addJoinPred(p, currsch);
+		   }
+	   }
+	   return null;
    }
    
    private Plan makeProductJoin(Plan current, Schema currsch) {
