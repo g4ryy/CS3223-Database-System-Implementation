@@ -32,7 +32,6 @@ public class HeuristicQueryPlanner implements QueryPlanner {
     * results in the smallest output.
     */
    public Plan createPlan(QueryData data, Transaction tx) {
-      
       // Step 1:  Create a TablePlanner object for each mentioned table
       for (String tblname : data.tables()) {
          TablePlanner tp = new TablePlanner(tblname, data.pred(), tx, mdm);
@@ -61,9 +60,14 @@ public class HeuristicQueryPlanner implements QueryPlanner {
          currentplan = new SortPlan(tx, currentplan, data.orderFields(), data.isDistinct(), data.fields());
       }
 
+
       data.fields().addAll(data.aggFields().stream().map(AggregationFn::fieldName).collect(Collectors.toList()));
+      
       // Step 6.  Project on the field names
       currentplan = new ProjectPlan(currentplan, data.fields());
+
+      System.out.println("Query Plan:");
+      System.out.println(currentplan);
 
       return currentplan;
    }
