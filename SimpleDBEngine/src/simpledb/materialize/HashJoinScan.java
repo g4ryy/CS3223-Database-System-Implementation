@@ -63,7 +63,12 @@ public class HashJoinScan implements Scan {
         smallScanIndex = -1;
         smallScan.beforeFirst();
 
-        largeScan = largePartitions.get(currPartition).open();
+        if (largePartitions.containsKey(currPartition)) {
+            largeScan = largePartitions.get(currPartition).open();
+        } else {
+            return nextPartition();
+        }
+
         largeScan.beforeFirst();
 
         if (!largeScan.next()) {
