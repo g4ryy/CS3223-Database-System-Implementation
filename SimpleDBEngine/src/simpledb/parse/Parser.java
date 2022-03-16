@@ -116,6 +116,7 @@ public class Parser {
             orderFieldNames.add(fieldName);
          }
       }
+      // To return distinct tuples, we want to sort by the select fields so that duplicates can be removed during the sorting and merging
       if (isDistinct) {
     	  for (String fieldName : fields) {
     		  if (!orderFieldNames.contains(fieldName)) {

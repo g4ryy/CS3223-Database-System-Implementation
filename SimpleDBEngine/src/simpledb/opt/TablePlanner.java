@@ -56,6 +56,7 @@ class TablePlanner {
 			  Operator operator = term.getOperator();
 			  if (indexes.keySet().contains(lhs.asFieldName()) || indexes.keySet().contains(rhs.asFieldName())) {
 				  if (!operator.toString().equals("=")) {
+					  // Don't use index for non-equi selects on an indexed field
 					  return addSelectPred(myplan);
 				  }
 			  }
