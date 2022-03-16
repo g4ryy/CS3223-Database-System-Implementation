@@ -5,6 +5,7 @@ import java.util.PriorityQueue;
 
 import simpledb.materialize.HashJoinPlan;
 import simpledb.materialize.MergeJoinPlan;
+import simpledb.materialize.NestedLoopsJoinPlan;
 import simpledb.tx.Transaction;
 import simpledb.record.*;
 import simpledb.query.*;
@@ -70,9 +71,7 @@ class TablePlanner {
    
    /**
     * Constructs a join plan of the specified plan
-    * and the table.  The plan will use an indexjoin, if possible.
-    * (Which means that if an indexselect is also possible,
-    * the indexjoin operator takes precedence.)
+    * and the table.  The plan will use the join with the lowest cost.
     * The method returns null if no join is possible.
     * @param current the specified plan
     * @return a join plan of the plan and this table
@@ -82,7 +81,6 @@ class TablePlanner {
       Predicate joinpred = mypred.joinSubPred(myschema, currsch);
       if (joinpred == null)
          return null;
-
 
       PriorityQueue<Plan> pq = new PriorityQueue<>((x, y) -> x.blocksAccessed() - y.blocksAccessed());
       Plan tempPlan = makeIndexJoin(current, currsch);
@@ -97,6 +95,10 @@ class TablePlanner {
       tempPlan = makeHashJoin(current, currsch, joinpred);
       if (tempPlan != null) {
          pq.add(tempPlan);
+      }
+      tempPlan = makeNestedLoopsJoin(current, currsch, joinpred);
+      if (tempPlan != null) {
+    	  pq.add(tempPlan);
       }
 
       if (pq.size() == 0) {
@@ -131,8 +133,9 @@ class TablePlanner {
    private Plan makeMergeJoin(Plan current, Schema currsch, Predicate joinPred) {
       for (String fldname : myschema.fields()) {
          String matchField = joinPred.equatesWithField(fldname);
+         Operator opr = joinPred.getOprForField(fldname);
 
-         if (matchField != null && currsch.hasField(matchField)) {
+         if (matchField != null && opr.toString().equals("=") && currsch.hasField(matchField)) {
             Plan p = new MergeJoinPlan(tx, myplan, current, fldname, matchField);
             p = addSelectPred(p);
             return addJoinPred(p, currsch);
@@ -144,8 +147,9 @@ class TablePlanner {
    private Plan makeHashJoin(Plan current, Schema currsch, Predicate joinPred) {
       for (String fldName : myschema.fields()) {
          String matchField = joinPred.equatesWithField(fldName);
+         Operator opr = joinPred.getOprForField(fldName);
 
-         if (matchField != null && currsch.hasField(matchField)) {
+         if (matchField != null && opr.toString().equals("=") && currsch.hasField(matchField)) {
             Plan p = new HashJoinPlan(tx, myplan, current, fldName, matchField);
             p = addSelectPred(p);
             return addJoinPred(p, currsch);
@@ -157,7 +161,8 @@ class TablePlanner {
    private Plan makeIndexJoin(Plan current, Schema currsch) {
       for (String fldname : indexes.keySet()) {
          String outerfield = mypred.equatesWithField(fldname);
-         if (outerfield != null && currsch.hasField(outerfield)) {
+         Operator opr = mypred.getOprForField(fldname);
+         if (outerfield != null && opr.toString().equals("=") && currsch.hasField(outerfield)) {
             IndexInfo ii = indexes.get(fldname);
             Plan p = new IndexJoinPlan(current, myplan, ii, outerfield);
             p = addSelectPred(p);
@@ -165,6 +170,20 @@ class TablePlanner {
          }
       }
       return null;
+   }
+   
+   private Plan makeNestedLoopsJoin(Plan current, Schema currsch, Predicate joinPred) {
+	   for (String fldName : myschema.fields()) {
+		   String matchField = joinPred.equatesWithField(fldName);
+		   Operator opr = joinPred.getOprForField(fldName);
+
+		   if (matchField != null && currsch.hasField(matchField)) {
+			   Plan p = new NestedLoopsJoinPlan(tx, myplan, current, fldName, matchField, opr);
+			   p = addSelectPred(p);
+			   return addJoinPred(p, currsch);
+		   }
+	   }
+	   return null;
    }
    
    private Plan makeProductJoin(Plan current, Schema currsch) {

@@ -110,6 +110,19 @@ public class Term {
          return null;
    }
    
+   public Operator getOprForField(String fldname) {
+	   if (lhs.isFieldName() &&
+			   lhs.asFieldName().equals(fldname) &&
+			   rhs.isFieldName())
+		   return operator;
+	   else if (rhs.isFieldName() &&
+			   rhs.asFieldName().equals(fldname) &&
+			   lhs.isFieldName())
+		   return operator;
+	   else
+		   return null;
+   }
+   
    /**
     * Return true if both of the term's expressions
     * apply to the specified schema.

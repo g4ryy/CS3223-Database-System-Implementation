@@ -137,6 +137,15 @@ public class Predicate {
       return null;
    }
    
+   public Operator getOprForField(String fldname) {
+	   for (Term t : terms) {
+		   Operator opr = t.getOprForField(fldname);
+		   if (opr != null)
+			   return opr;
+	   }
+	   return null;
+   }
+   
    public List<Term> getTerms() {
 	   return terms;
    }
