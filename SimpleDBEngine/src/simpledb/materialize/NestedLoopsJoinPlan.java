@@ -5,11 +5,8 @@ import simpledb.plan.Plan;
 import simpledb.query.*;
 import simpledb.record.*;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
 /**
- * The Plan class for the <i>mergejoin</i> operator.
+ * The Plan class for the <i>nested loops join</i> operator.
  * @author Edward Sciore
  */
 public class NestedLoopsJoinPlan implements Plan {
@@ -19,13 +16,12 @@ public class NestedLoopsJoinPlan implements Plan {
    private Operator opr;
    
    /**
-    * Creates a mergejoin plan for the two specified queries.
-    * The RHS must be materialized after it is sorted, 
-    * in order to deal with possible duplicates.
+    * Creates a nested loops join plan for the two specified queries.
     * @param p1 the LHS query plan
     * @param p2 the RHS query plan
     * @param fldname1 the LHS join field
     * @param fldname2 the RHS join field
+    * @param opr the operator used to compare the two fields
     * @param tx the calling transaction
     */
    public NestedLoopsJoinPlan(Transaction tx, Plan p1, Plan p2, String fldname1, String fldname2, Operator opr) {
@@ -33,16 +29,15 @@ public class NestedLoopsJoinPlan implements Plan {
       this.fldname2 = fldname2;
       this.p1 = p1;
       this.p2 = p2;
+      this.opr = opr;
       sch.addAll(p1.schema());
       sch.addAll(p2.schema());
-      this.opr = opr;
    }
    
-   /** The method first sorts its two underlying scans
-     * on their join field. It then returns a mergejoin scan
-     * of the two sorted table scans.
-     * @see simpledb.plan.Plan#open()
-     */
+   /**
+    * Creates a nested loops join scan for this query.
+    * @see simpledb.plan.Plan#open()
+    */
    public Scan open() {
       Scan s1 = p1.open();
       Scan s2 = p2.open();
@@ -51,21 +46,11 @@ public class NestedLoopsJoinPlan implements Plan {
    
    /**
     * Return the number of block accesses required to
-    * mergejoin the sorted tables.
-    * Since a mergejoin can be performed with a single
-    * pass through each table, the method returns
-    * the sum of the block accesses of the 
-    * materialized sorted tables.
-    * It includes the one-time cost
-    * of materializing and sorting the records.
+    * join the tables using tuple-based nested loops.
     * @see simpledb.plan.Plan#blocksAccessed()
     */
    public int blocksAccessed() {
-	   int numOfPassesRequiredToSortP1 = ((SortPlan) p1).getNumOfPasses();
-	   int numOfPassesRequiredToSortP2 = ((SortPlan) p2).getNumOfPasses();
-	   return 2 * p1.blocksAccessed() * numOfPassesRequiredToSortP1 
-			   + 2 * p2.blocksAccessed() * numOfPassesRequiredToSortP2
-			   + p1.blocksAccessed() + p2.blocksAccessed();
+	   return p1.blocksAccessed() + p1.recordsOutput() * p2.blocksAccessed();
    }
    
    /**

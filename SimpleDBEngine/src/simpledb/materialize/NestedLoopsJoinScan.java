@@ -3,7 +3,7 @@ package simpledb.materialize;
 import simpledb.query.*;
 
 /**
- * The Scan class for the <i>mergejoin</i> operator.
+ * The Scan class for the <i>nested loops join</i> operator.
  * @author Edward Sciore
  */
 public class NestedLoopsJoinScan implements Scan {
@@ -14,11 +14,12 @@ public class NestedLoopsJoinScan implements Scan {
    private Operator opr;
    
    /**
-    * Create a mergejoin scan for the two underlying sorted scans.
-    * @param s1 the LHS sorted scan
-    * @param s2 the RHS sorted scan
+    * Create a nested loops join scan for the two underlying sorted scans.
+    * @param s1 the LHS scan
+    * @param s2 the RHS scan
     * @param fldname1 the LHS join field
     * @param fldname2 the RHS join field
+    * @param opr the operator used to compare the two fields
     */
    public NestedLoopsJoinScan(Scan s1, Scan s2, String fldname1, String fldname2, Operator opr) {
       this.s1 = s1;
@@ -41,27 +42,19 @@ public class NestedLoopsJoinScan implements Scan {
    }
    
   /**
-    * Position the scan before the first record,
-    * by positioning each underlying scan before
-    * their first records.
+    * Position the lhs scan at the first record, and the rhs scan before
+    * the first record.
     * @see simpledb.query.Scan#beforeFirst()
     */
    public void beforeFirst() {
-      s1.beforeFirst();
+	  s1.beforeFirst();
+	  if (!s1IsEmpty) {
+		  s1.next();
+	  }
       s2.beforeFirst();
    }
    
    /**
-    * Move to the next record.  This is where the action is.
-    * <P>
-    * If the next RHS record has the same join value,
-    * then move to it.
-    * Otherwise, if the next LHS record has the same join value,
-    * then reposition the RHS scan back to the first record
-    * having that join value.
-    * Otherwise, repeatedly move the scan having the smallest
-    * value until a common join value is found.
-    * When one of the scans runs out of records, return false.
     * @see simpledb.query.Scan#next()
     */
    public boolean next() {
