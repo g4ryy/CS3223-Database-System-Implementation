@@ -35,6 +35,7 @@ public class GroupByPlan implements Plan {
             .map(fld -> new OrderField(fld, "asc")).collect(Collectors.toList()), false);
       this.groupfields = groupfields;
       this.aggfns = aggfns;
+      this.originalPlan = p;
       for (String fldname : groupfields)
          sch.add(fldname, p.schema());
       for (AggregationFn fn : aggfns) {
