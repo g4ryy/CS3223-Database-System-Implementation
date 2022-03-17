@@ -19,7 +19,7 @@ public class Operator {
     /**
      * Executes the comparison between the 2 inputs
      *
-     * @param first The expression on the lhs of the term
+     * @param first  The expression on the lhs of the term
      * @param second The expression on the rhs of the term
      */
     public boolean evaluate(Constant first, Constant second) {
@@ -39,8 +39,8 @@ public class Operator {
             return first.equals(second);
         }
     }
-    
+
     public String toString() {
-    	return operator;
+        return operator;
     }
 }

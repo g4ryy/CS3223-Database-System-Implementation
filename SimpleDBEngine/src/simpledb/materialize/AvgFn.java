@@ -13,6 +13,7 @@ public class AvgFn implements AggregationFn {
 
     /**
      * Create an average aggregation function for the specified field.
+     *
      * @param fldname the name of the aggregated field
      */
     public AvgFn(String fldname) {
@@ -25,6 +26,7 @@ public class AvgFn implements AggregationFn {
      * every record will be counted,
      * regardless of the field.
      * The current count is thus set to 1.
+     *
      * @see simpledb.materialize.AggregationFn#processFirst(Scan)
      */
     public void processFirst(Scan s) {
@@ -36,15 +38,17 @@ public class AvgFn implements AggregationFn {
      * Since SimpleDB does not support null values,
      * this method always adds the field value in the current record to sum,
      * and increments the count regardless of the field.
+     *
      * @see simpledb.materialize.AggregationFn#processNext(Scan)
      */
     public void processNext(Scan s) {
         sum += s.getInt(fldname);
-        count ++;
+        count++;
     }
 
     /**
      * Return the field's name, prepended by "avgof".
+     *
      * @see simpledb.materialize.AggregationFn#fieldName()
      */
     public String fieldName() {
@@ -53,10 +57,11 @@ public class AvgFn implements AggregationFn {
 
     /**
      * Return the current average.
+     *
      * @see simpledb.materialize.AggregationFn#value()
      */
     public Constant value() {
-        return new Constant(sum/count);
+        return new Constant(sum / count);
     }
 
     public String getField() {

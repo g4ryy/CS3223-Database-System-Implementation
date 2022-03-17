@@ -12,6 +12,7 @@ public class SumFn implements AggregationFn {
 
     /**
      * Create a sum aggregation function for the specified field.
+     *
      * @param fldname the name of the aggregated field
      */
     public SumFn(String fldname) {
@@ -23,6 +24,7 @@ public class SumFn implements AggregationFn {
      * Since SimpleDB does not support null values,
      * every record will be counted,
      * regardless of the field.
+     *
      * @see simpledb.materialize.AggregationFn#processFirst(Scan)
      */
     public void processFirst(Scan s) {
@@ -33,6 +35,7 @@ public class SumFn implements AggregationFn {
      * Since SimpleDB does not support null values,
      * this method always adds the field value in the current record to sum,
      * regardless of the field.
+     *
      * @see simpledb.materialize.AggregationFn#processNext(Scan)
      */
     public void processNext(Scan s) {
@@ -41,6 +44,7 @@ public class SumFn implements AggregationFn {
 
     /**
      * Return the field's name, prepended by "sumof".
+     *
      * @see simpledb.materialize.AggregationFn#fieldName()
      */
     public String fieldName() {
@@ -49,6 +53,7 @@ public class SumFn implements AggregationFn {
 
     /**
      * Return the current sum.
+     *
      * @see simpledb.materialize.AggregationFn#value()
      */
     public Constant value() {

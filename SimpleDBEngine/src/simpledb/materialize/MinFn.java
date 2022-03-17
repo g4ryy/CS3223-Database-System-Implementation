@@ -1,9 +1,11 @@
 package simpledb.materialize;
 
-import simpledb.query.*;
+import simpledb.query.Constant;
+import simpledb.query.Scan;
 
 /**
  * The <i>min</i> aggregation function.
+ *
  * @author Edward Sciore
  */
 public class MinFn implements AggregationFn {
@@ -12,6 +14,7 @@ public class MinFn implements AggregationFn {
 
     /**
      * Create a min aggregation function for the specified field.
+     *
      * @param fldname the name of the aggregated field
      */
     public MinFn(String fldname) {
@@ -21,6 +24,7 @@ public class MinFn implements AggregationFn {
     /**
      * Start a new minimum to be the
      * field value in the current record.
+     *
      * @see simpledb.materialize.AggregationFn#processFirst(simpledb.query.Scan)
      */
     public void processFirst(Scan s) {
@@ -30,6 +34,7 @@ public class MinFn implements AggregationFn {
     /**
      * Replace the current minimum by the field value
      * in the current record, if it is higher.
+     *
      * @see simpledb.materialize.AggregationFn#processNext(simpledb.query.Scan)
      */
     public void processNext(Scan s) {
@@ -40,6 +45,7 @@ public class MinFn implements AggregationFn {
 
     /**
      * Return the field's name, prepended by "minof".
+     *
      * @see simpledb.materialize.AggregationFn#fieldName()
      */
     public String fieldName() {
@@ -48,6 +54,7 @@ public class MinFn implements AggregationFn {
 
     /**
      * Return the current minimum.
+     *
      * @see simpledb.materialize.AggregationFn#value()
      */
     public Constant value() {
