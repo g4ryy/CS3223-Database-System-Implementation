@@ -20,9 +20,9 @@ public class OrderField {
     public String getType() {
         return this.type;
     }
-    
+
     public String toString() {
-    	return String.format("%s %s", field, type);
+        return String.format("%s %s", field, type);
     }
 }
 

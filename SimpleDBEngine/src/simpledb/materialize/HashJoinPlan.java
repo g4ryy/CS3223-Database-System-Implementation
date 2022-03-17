@@ -1,11 +1,16 @@
 package simpledb.materialize;
 
-import simpledb.tx.Transaction;
-import simpledb.plan.Plan;
-import simpledb.query.*;
-import simpledb.record.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import java.util.*;
+import simpledb.plan.Plan;
+import simpledb.query.Constant;
+import simpledb.query.Scan;
+import simpledb.query.UpdateScan;
+import simpledb.record.Schema;
+import simpledb.tx.Transaction;
 
 
 /**
@@ -21,9 +26,9 @@ public class HashJoinPlan implements Plan {
     /**
      * Creates a hashjoin plan for the two specified queries.
      *
-     * @param tx the calling transaction
-     * @param p1 the LHS query plan
-     * @param p2 the RHS query plan
+     * @param tx       the calling transaction
+     * @param p1       the LHS query plan
+     * @param p2       the RHS query plan
      * @param fldname1 the LHS join field
      * @param fldname2 the RHS join field
      */
@@ -51,6 +56,7 @@ public class HashJoinPlan implements Plan {
      * The method first generates partitions for the two tables.
      * It then returns a hashjoin scan
      * of the two partitioned table scans.
+     *
      * @see simpledb.plan.Plan#open()
      */
     public Scan open() {
@@ -117,6 +123,7 @@ public class HashJoinPlan implements Plan {
      * Estimates the number of block accesses to compute the join.
      * The formula is:
      * <pre> B(hashjoin(p1,p2)) = 3 * (B(p1) + B(p2))</pre>
+     *
      * @see simpledb.plan.Plan#blocksAccessed()
      */
     public int blocksAccessed() {
@@ -127,11 +134,12 @@ public class HashJoinPlan implements Plan {
      * Estimates the number of output records in the join.
      * The formula is:
      * <pre> R(hashjoin(p1,p2)) = R(p1)*R(p2)/max{V(p1,F1),V(p2,F2)} </pre>
+     *
      * @see simpledb.plan.Plan#recordsOutput()
      */
     public int recordsOutput() {
         int maxvals = Math.max(smallPlan.distinctValues(smallField),
-            largePlan.distinctValues(largeField));
+                largePlan.distinctValues(largeField));
         return (smallPlan.recordsOutput() * largePlan.recordsOutput()) / maxvals;
     }
 
@@ -139,6 +147,7 @@ public class HashJoinPlan implements Plan {
      * Estimate the distinct number of field values in the join.
      * Since the join does not increase or decrease field values,
      * the estimate is the same as in the appropriate underlying query.
+     *
      * @see simpledb.plan.Plan#distinctValues(java.lang.String)
      */
     public int distinctValues(String fldname) {
@@ -151,14 +160,15 @@ public class HashJoinPlan implements Plan {
     /**
      * Return the schema of the join,
      * which is the union of the schemas of the underlying queries.
+     *
      * @see simpledb.plan.Plan#schema()
      */
     public Schema schema() {
         return sch;
     }
-    
+
     public String toString() {
- 	   return String.format("(%s) hash join (%s)", smallPlan.toString(), largePlan.toString());
+        return String.format("(%s) hash join (%s)", smallPlan.toString(), largePlan.toString());
     }
 }
 

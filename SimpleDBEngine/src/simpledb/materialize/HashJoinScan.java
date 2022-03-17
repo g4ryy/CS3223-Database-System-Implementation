@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import simpledb.query.*;
+import simpledb.query.Constant;
+import simpledb.query.Scan;
 import simpledb.record.Schema;
 
 /**
@@ -30,9 +31,9 @@ public class HashJoinScan implements Scan {
      *
      * @param smallPartitions the smaller partitioned scan
      * @param largePartitions the larger partitioned scan
-     * @param smallField the join field of the smaller partitioned table
-     * @param largeField the join field of the larger partitioned table
-     * @param schema the schema of the smaller scan
+     * @param smallField      the join field of the smaller partitioned table
+     * @param largeField      the join field of the larger partitioned table
+     * @param schema          the schema of the smaller scan
      */
     public HashJoinScan(Map<Integer, TempTable> smallPartitions, Map<Integer, TempTable> largePartitions,
                         String smallField, String largeField, Schema schema) {
@@ -47,6 +48,7 @@ public class HashJoinScan implements Scan {
 
     /**
      * Close the scan by closing the larger partitioned scan.
+     *
      * @see simpledb.query.Scan#close()
      */
     public void close() {
@@ -99,6 +101,7 @@ public class HashJoinScan implements Scan {
 
     /**
      * Moves to the first partition
+     *
      * @see simpledb.query.Scan#beforeFirst()
      */
     public void beforeFirst() {
@@ -113,7 +116,7 @@ public class HashJoinScan implements Scan {
         if (largeScan != null) {
             Constant val = largeScan.getVal(largeField);
             if (map.containsKey(val) &&
-                smallScanIndex < map.get(val).size() - 1) {
+                    smallScanIndex < map.get(val).size() - 1) {
                 smallScanIndex++;
                 return true;
             }
@@ -137,6 +140,7 @@ public class HashJoinScan implements Scan {
      * Return the integer value of the specified field.
      * The value is obtained from whichever scan
      * contains the field.
+     *
      * @see simpledb.query.Scan#getInt(java.lang.String)
      */
     public int getInt(String fldname) {
@@ -150,6 +154,7 @@ public class HashJoinScan implements Scan {
      * Return the string value of the specified field.
      * The value is obtained from whichever scan
      * contains the field.
+     *
      * @see simpledb.query.Scan#getString(java.lang.String)
      */
     public String getString(String fldname) {
@@ -163,6 +168,7 @@ public class HashJoinScan implements Scan {
      * Return the value of the specified field.
      * The value is obtained from whichever scan
      * contains the field.
+     *
      * @see simpledb.query.Scan#getVal(java.lang.String)
      */
     public Constant getVal(String fldname) {
@@ -175,6 +181,7 @@ public class HashJoinScan implements Scan {
     /**
      * Return true if the specified field is in
      * either of the underlying scans.
+     *
      * @see simpledb.query.Scan#hasField(java.lang.String)
      */
     public boolean hasField(String fldname) {
