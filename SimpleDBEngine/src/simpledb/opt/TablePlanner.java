@@ -191,7 +191,7 @@ class TablePlanner {
             Operator opr = joinPred.getOprForField(fldName);
 
             if (matchField != null && currsch.hasField(matchField)) {
-                Plan p = new NestedLoopsJoinPlan(tx, myplan, current, fldName, matchField, opr);
+                Plan p = new NestedLoopsJoinPlan(tx, current, myplan, matchField, fldName, opr);
                 p = addSelectPred(p);
                 return addJoinPred(p, currsch);
             }
