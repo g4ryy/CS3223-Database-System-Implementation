@@ -150,8 +150,7 @@ class TablePlanner {
 
             if (matchField != null && opr.toString().equals("=") && currsch.hasField(matchField)) {
                 Plan p = new MergeJoinPlan(tx, myplan, current, fldname, matchField);
-                p = addSelectPred(p);
-                return addJoinPred(p, currsch);
+                return addSelectPred(p);
             }
         }
         return null;
@@ -164,8 +163,7 @@ class TablePlanner {
 
             if (matchField != null && opr.toString().equals("=") && currsch.hasField(matchField)) {
                 Plan p = new HashJoinPlan(tx, myplan, current, fldName, matchField);
-                p = addSelectPred(p);
-                return addJoinPred(p, currsch);
+                return addSelectPred(p);
             }
         }
         return null;
@@ -178,8 +176,7 @@ class TablePlanner {
             if (outerfield != null && opr.toString().equals("=") && currsch.hasField(outerfield)) {
                 IndexInfo ii = indexes.get(fldname);
                 Plan p = new IndexJoinPlan(current, myplan, ii, outerfield);
-                p = addSelectPred(p);
-                return addJoinPred(p, currsch);
+                return addSelectPred(p);
             }
         }
         return null;
@@ -191,9 +188,8 @@ class TablePlanner {
             Operator opr = joinPred.getOprForField(fldName);
 
             if (matchField != null && currsch.hasField(matchField)) {
-                Plan p = new NestedLoopsJoinPlan(tx, myplan, current, fldName, matchField, opr);
-                p = addSelectPred(p);
-                return addJoinPred(p, currsch);
+                Plan p = new NestedLoopsJoinPlan(tx, current, myplan, matchField, fldName, opr);
+                return addSelectPred(p);
             }
         }
         return null;
