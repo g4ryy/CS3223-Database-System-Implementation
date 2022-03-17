@@ -27,6 +27,7 @@ public class BasicQueryPlanner implements QueryPlanner {
     /**
      * Creates a query plan as follows.  It first takes
      * the product of all tables and views; it then selects on the predicate;
+     * It then performs group by or aggregation if needed, followed by sorting if needed,
      * and finally it projects on the field list.
      */
     public Plan createPlan(QueryData data, Transaction tx) {
