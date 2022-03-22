@@ -1,192 +1,213 @@
 package simpledb.materialize;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+import javax.sound.sampled.Line;
+
 import simpledb.query.Constant;
 import simpledb.query.Scan;
-import simpledb.record.Schema;
 
-/**
+/*
  * The Scan class for the <i>hashjoin</i> operator.
  */
 public class HashJoinScan implements Scan {
-    private Map<Integer, TempTable> smallPartitions;
-    private Map<Integer, TempTable> largePartitions;
-    private Schema smallSchema;
     private String smallField;
     private String largeField;
-    private Scan largeScan;
-    private int smallScanIndex;
+
+    private int numPartitions;
+    private Map<Integer, TempTable> smallPartitions;
+    private Map<Integer, TempTable> largePartitions;
+
+    private Scan s2;
+
     private int currPartition;
-    private Queue<Integer> partitionQueue = new LinkedList<>();
-    private Map<Constant, List<Map<String, Constant>>> map;
+    private boolean allPartitionsClosed;
+    private int keyIterator = 0;
+
+    private Map<Constant, List<Map<String, Constant>>> hashTable;
+    private boolean isEmpty;
+    Queue<Integer> queue = new LinkedList<>();
 
     /**
-     * Create a hashjoin scan for the two partitioned scans.
+     * Creates a block join scan for the specified LHS scan and
+     * RHS scan.
      *
      * @param smallPartitions the smaller partitioned scan
+     * @param smallField  the join field of the smaller partitioned table
      * @param largePartitions the larger partitioned scan
-     * @param smallField      the join field of the smaller partitioned table
-     * @param largeField      the join field of the larger partitioned table
-     * @param schema          the schema of the smaller scan
+     * @param largeField  the join field of the larger partitioned table
      */
-    public HashJoinScan(Map<Integer, TempTable> smallPartitions, Map<Integer, TempTable> largePartitions,
-                        String smallField, String largeField, Schema schema) {
-        this.smallPartitions = smallPartitions;
-        this.largePartitions = largePartitions;
+    public HashJoinScan(Map<Integer, TempTable> smallPartitions,
+                             String smallField, Map<Integer, TempTable> largePartitions,
+                             String largeField) {
         this.smallField = smallField;
         this.largeField = largeField;
-        smallPartitions.keySet().forEach(p -> partitionQueue.offer(p));
-        this.smallSchema = schema;
+        this.numPartitions = smallPartitions.size();
+        this.smallPartitions = smallPartitions;
+        this.largePartitions = largePartitions;
+        for (Integer i : smallPartitions.keySet()) {
+            queue.offer(i);
+        }
         beforeFirst();
     }
 
-    /**
-     * Close the scan by closing the larger partitioned scan.
-     *
-     * @see simpledb.query.Scan#close()
-     */
-    public void close() {
-        if (largeScan != null) {
-            largeScan.close();
+    public boolean nextPartition() {
+        if (currPartition >= 0) {
+            s2.close();
         }
-    }
 
-    private boolean nextPartition() {
-        if (partitionQueue.isEmpty()) {
+        if (queue.isEmpty()) {
+            allPartitionsClosed = true;
             return false;
         }
 
-        currPartition = partitionQueue.poll();
+        currPartition = queue.poll();
 
-        Scan smallScan = smallPartitions.get(currPartition).open();
-        smallScanIndex = -1;
-        smallScan.beforeFirst();
-
-        if (largePartitions.containsKey(currPartition)) {
-            largeScan = largePartitions.get(currPartition).open();
-        } else {
-            return nextPartition();
+        allPartitionsClosed = false;
+        s2 = largePartitions.get(currPartition).open();
+        s2.beforeFirst();
+        if (!s2.next()) {
+            isEmpty = !nextPartition();
+            return !isEmpty;
         }
 
-        largeScan.beforeFirst();
+        keyIterator = 0;
 
-        if (!largeScan.next()) {
-            return nextPartition();
-        }
+        Scan s1 = smallPartitions.get(currPartition).open();
+        s1.beforeFirst();
 
-        map = new HashMap<>();
-
-        while (smallScan.next()) {
-            Constant val = smallScan.getVal(smallField);
-            if (!map.containsKey(val)) {
-                map.put(val, new ArrayList<>());
+        hashTable = new HashMap<>();
+        while (s1.next()) {
+            if (!hashTable.containsKey(s1.getVal(smallField))) {
+                hashTable.put(s1.getVal(smallField), new ArrayList<>());
             }
 
-            Map<String, Constant> tmp = new HashMap<>();
-            for (String field : smallSchema.fields()) {
-                tmp.put(field, smallScan.getVal(field));
+            Map<String, Constant> row = new HashMap<>();
+            for (String field : smallPartitions.get(0).getLayout().schema().fields()) {
+                row.put(field, s1.getVal(field));
             }
-            map.get(val).add(tmp);
+            hashTable.get(s1.getVal(smallField)).add(row);
         }
-        smallScan.close();
+        s1.close();
+
+        if (hashTable.isEmpty()) {
+            isEmpty = !nextPartition();
+            return !isEmpty;
+        }
 
         return true;
     }
 
     /**
-     * Moves to the first partition
+     * Positions the scan before the first record.
+     * That is, the LHS scan will be positioned at its
+     * first record, and the RHS will be positioned
+     * before the first record for the join value.
      *
-     * @see simpledb.query.Scan#beforeFirst()
+     * @see Scan#beforeFirst()
      */
     public void beforeFirst() {
+        currPartition = -1;
         nextPartition();
     }
 
     /**
-     * @see simpledb.query.Scan#next()
+     * Moves the scan to the next record.
+     * The method moves to the next RHS record, if possible.
+     * Otherwise, it moves to the next LHS record and the
+     * first RHS record.
+     * If there are no more LHS records, the method returns false.
+     *
+     * @see Scan#next()
      */
+
     public boolean next() {
-        // largeScan == null indicates that the smaller scan is empty, so just return false
-        if (largeScan != null) {
-            Constant val = largeScan.getVal(largeField);
-            if (map.containsKey(val) &&
-                    smallScanIndex < map.get(val).size() - 1) {
-                smallScanIndex++;
+        if (isEmpty) {
+            return false;
+        }
+        while (true) {
+            //first check if there are duplicate key values in our hashtable
+            if (hashTable.keySet().contains(s2.getVal(largeField)) &&
+                keyIterator < hashTable.get(s2.getVal(largeField)).size()) {
+                keyIterator++;
                 return true;
             }
-
-            while (largeScan.next()) {
-                if (map.containsKey(largeScan.getVal(largeField))) {
-                    smallScanIndex = -1;
-                    return next();
+            while (s2.next()) {
+                if (hashTable.keySet().contains(s2.getVal(largeField))) {
+                    keyIterator = 1;
+                    return true;
                 }
             }
 
-            if (nextPartition()) {
-                return next();
-            }
+            if (!nextPartition()) return false;
         }
-
-        return false;
     }
 
     /**
-     * Return the integer value of the specified field.
-     * The value is obtained from whichever scan
-     * contains the field.
+     * Returns the integer value of the specified field.
      *
-     * @see simpledb.query.Scan#getInt(java.lang.String)
+     * @see Scan#getVal(String)
      */
     public int getInt(String fldname) {
-        if (largeScan.hasField(fldname))
-            return largeScan.getInt(fldname);
-        else
-            return map.get(largeScan.getVal(largeField)).get(smallScanIndex).get(fldname).asInt();
+        if (s2.hasField(fldname))
+            return s2.getInt(fldname);
+        else {
+            return hashTable.get(s2.getVal(largeField))
+                .get(keyIterator - 1).get(fldname).asInt();
+        }
     }
 
     /**
-     * Return the string value of the specified field.
-     * The value is obtained from whichever scan
-     * contains the field.
+     * Returns the Constant value of the specified field.
      *
-     * @see simpledb.query.Scan#getString(java.lang.String)
-     */
-    public String getString(String fldname) {
-        if (largeScan.hasField(fldname))
-            return largeScan.getString(fldname);
-        else
-            return map.get(largeScan.getVal(largeField)).get(smallScanIndex).get(fldname).asString();
-    }
-
-    /**
-     * Return the value of the specified field.
-     * The value is obtained from whichever scan
-     * contains the field.
-     *
-     * @see simpledb.query.Scan#getVal(java.lang.String)
+     * @see Scan#getVal(String)
      */
     public Constant getVal(String fldname) {
-        if (largeScan.hasField(fldname))
-            return largeScan.getVal(fldname);
-        else
-            return map.get(largeScan.getVal(largeField)).get(smallScanIndex).get(fldname);
+        if (s2.hasField(fldname))
+            return s2.getVal(fldname);
+        else {
+            return hashTable.get(s2.getVal(largeField)).get(keyIterator - 1).get(fldname);
+        }
     }
 
     /**
-     * Return true if the specified field is in
-     * either of the underlying scans.
+     * Returns the string value of the specified field.
      *
-     * @see simpledb.query.Scan#hasField(java.lang.String)
+     * @see Scan#getVal(String)
+     */
+    public String getString(String fldname) {
+        if (s2.hasField(fldname))
+            return s2.getString(fldname);
+        else {
+            return hashTable.get(s2.getVal(largeField)).
+                get(keyIterator - 1).get(fldname).asString();
+        }
+    }
+
+    /**
+     * Returns true if the field is in the schema.
+     *
+     * @see Scan#hasField(String)
      */
     public boolean hasField(String fldname) {
-        return largeScan.hasField(fldname) ||
-                map.get(largeScan.getVal(largeField)).get(smallScanIndex).containsKey((fldname));
+        return s2.hasField(fldname) ||
+            hashTable.get(s2.getVal(largeField)).
+                get(keyIterator - 1).keySet().contains(fldname);
+    }
+
+    /**
+     * Closes the scan by closing its LHS scan and its RHS index.
+     *
+     * @see Scan#close()
+     */
+    public void close() {
+        if (!allPartitionsClosed)
+            s2.close();
     }
 }
-

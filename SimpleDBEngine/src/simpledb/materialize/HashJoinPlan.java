@@ -1,6 +1,7 @@
 package simpledb.materialize;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,64 +61,78 @@ public class HashJoinPlan implements Plan {
      * @see simpledb.plan.Plan#open()
      */
     public Scan open() {
-        Map<Integer, TempTable> smallPartitions = getPartitions(smallPlan, smallField);
-        Map<Integer, TempTable> largePartitions = getPartitions(largePlan, largeField);
-        return new HashJoinScan(smallPartitions, largePartitions, smallField, largeField, smallPlan.schema());
-    }
+        Map<Integer, TempTable> smallerPartitions = getPartitions(smallPlan.open(), smallPlan.schema(), smallField, 0);
+        Map<Integer, TempTable> largerPartitions = getPartitions(largePlan.open(), largePlan.schema(), largeField, 0);
 
-    private Map<Integer, TempTable> getPartitions(Plan p, String joinField) {
-        Scan src = p.open();
-        Map<Integer, TempTable> output = new HashMap<>();
-        Map<Integer, List<Map<String, Constant>>> temps = new HashMap<>();
+        List<Integer> toSplit;
 
-        src.beforeFirst();
-
-        boolean hasRecord = src.next();
-
-        if (!hasRecord) {
-            return output;
-        }
-
-        while (hasRecord) {
-            int partition = -1;
-
-            Map<String, Constant> map = new HashMap<>();
-
-            for (String fldname : p.schema().fields()) {
-                Constant value = src.getVal(fldname);
-                map.put(fldname, value);
-
-                if (fldname.equals(joinField)) {
-                    partition = value.hashCode() % numParitions;
+        // split into more partitions if any partition too large
+        while (true) {
+            toSplit = new ArrayList<>();
+            for (int i = 0; i < smallerPartitions.size(); i++) {
+                int partitionsize = tx.size(smallerPartitions.get(i).tableName() + ".tbl");
+                if (partitionsize > Math.max(tx.availableBuffs() - 2, 1)) {
+                    toSplit.add(i);
                 }
             }
 
-            assert partition >= 0;
-
-            if (!temps.containsKey(partition)) {
-                temps.put(partition, new ArrayList<>());
+            if (toSplit.size() == 0) {
+                break;
             }
 
-            temps.get(partition).add(map);
+            for (int i : toSplit) {
+                smallerPartitions.putAll(
+                    getPartitions(
+                        smallerPartitions.get(i).open(),
+                        smallerPartitions.get(i).getLayout().schema(),
+                        smallField, Collections.max(smallerPartitions.keySet())));
 
-            hasRecord = src.next();
-        }
-
-        for (Integer partitionNum : temps.keySet()) {
-            TempTable currenttemp = new TempTable(tx, p.schema());
-            UpdateScan currentscan = currenttemp.open();
-
-            for (Map<String, Constant> record : temps.get(partitionNum)) {
-                currentscan.insert();
-                for (String fldname : p.schema().fields())
-                    currentscan.setVal(fldname, record.get(fldname));
+                largerPartitions.putAll(
+                    getPartitions(
+                        largerPartitions.get(i).open(),
+                        largerPartitions.get(i).getLayout().schema(),
+                        largeField, Collections.max(largerPartitions.keySet())));
             }
-            currentscan.close();
-            output.put(partitionNum, currenttemp);
+
+            for (int i : toSplit) {
+                smallerPartitions.remove(i);
+                largerPartitions.remove(i);
+            }
         }
 
-        return output;
+        return new HashJoinScan(smallerPartitions,smallField, largerPartitions,
+            largeField);
     }
+
+    private Map<Integer, TempTable> getPartitions(Scan s, Schema sch, String joinField, int start) {
+        int partitions = tx.availableBuffs() - 1;
+
+        Map<Integer, TempTable> ttList = new HashMap<>();
+        Map<Integer, UpdateScan> scanList = new HashMap<>();
+
+        for (int i = start; i < partitions + start; i++) {
+            ttList.put(i, new TempTable(tx, sch));
+            scanList.put(i, (UpdateScan) ttList.get(i).open());
+        }
+        while (s.next()) {
+            UpdateScan dest = scanList.
+                get((s.getVal(joinField).
+                    hashCode() % partitions) + start);
+            dest.insert();
+            for (String fldname : sch.fields()) {
+                dest.setVal(fldname, s.getVal(fldname));
+            }
+        }
+
+        for (int i = start; i < partitions + start; i++) {
+            scanList.get(i).close();
+        }
+
+        s.close();
+        return ttList;
+    }
+
+
 
     /**
      * Estimates the number of block accesses to compute the join.
